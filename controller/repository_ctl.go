@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/jiaozifs/jiaozifs/block"
+	"github.com/jiaozifs/jiaozifs/block/factory"
 	"io"
 	"net/http"
 	"regexp"
@@ -287,6 +289,22 @@ func (repositoryCtl RepositoryController) DeleteRepository(ctx context.Context, 
 
 	if affectRows == 0 {
 		w.NotFound()
+		return
+	}
+
+	var adapter block.Adapter
+	if !repo.UsePublicStorage {
+		w.String("The repo doesn't use public storage and cannot be cleared.", 200)
+		return
+	}
+	adapter, err = factory.BuildBlockAdapter(ctx, repositoryCtl.PublicStorageConfig)
+	if err != nil {
+		w.Error(err)
+		return
+	}
+	err = adapter.Clean(ctx, config.DefaultLocalBSPath, *repo.StorageNamespace)
+	if err != nil {
+		w.Error(err)
 		return
 	}
 	w.OK()

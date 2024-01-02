@@ -139,6 +139,7 @@ type Adapter interface {
 	GetRange(ctx context.Context, obj ObjectPointer, startPosition int64, endPosition int64) (io.ReadCloser, error)
 	GetProperties(ctx context.Context, obj ObjectPointer) (Properties, error)
 	Remove(ctx context.Context, obj ObjectPointer) error
+	Clean(ctx context.Context, path, storageNamespace string) error
 	Copy(ctx context.Context, sourceObj, destinationObj ObjectPointer) error
 	CreateMultiPartUpload(ctx context.Context, obj ObjectPointer, r *http.Request, opts CreateMultiPartUploadOpts) (*CreateMultiPartUploadResponse, error)
 	UploadPart(ctx context.Context, obj ObjectPointer, sizeBytes int64, reader io.Reader, uploadID string, partNumber int) (*UploadPartResponse, error)

@@ -350,6 +350,10 @@ func (a *Adapter) Remove(ctx context.Context, obj block.ObjectPointer) error {
 	return err
 }
 
+func (a *Adapter) Clean(_ context.Context, _, _ string) error {
+	return nil
+}
+
 func (a *Adapter) Copy(ctx context.Context, sourceObj, destinationObj block.ObjectPointer) error {
 	var err error
 	defer reportMetrics("Copy", time.Now(), nil, &err)

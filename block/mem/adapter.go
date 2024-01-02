@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -89,6 +90,8 @@ func (a *Adapter) Put(_ context.Context, obj block.ObjectPointer, _ int64, reade
 		return err
 	}
 	key := getKey(obj)
+	fmt.Println(obj)
+	fmt.Println(key)
 	a.data[key] = data
 	return nil
 }
@@ -99,7 +102,9 @@ func (a *Adapter) Get(_ context.Context, obj block.ObjectPointer, _ int64) (io.R
 	}
 	a.mutex.RLock()
 	defer a.mutex.RUnlock()
+	fmt.Println(obj)
 	key := getKey(obj)
+	fmt.Println(key)
 	data, ok := a.data[key]
 	if !ok {
 		return nil, ErrNoDataForKey
@@ -173,6 +178,18 @@ func (a *Adapter) Remove(_ context.Context, obj block.ObjectPointer) error {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
 	delete(a.data, getKey(obj))
+	return nil
+}
+
+func (a *Adapter) Clean(_ context.Context, _, storageNamespace string) error {
+	if storageNamespace == "" {
+		return errors.New("storageNamespace cannot be empty")
+	}
+	for key := range a.data {
+		if strings.HasPrefix(key, storageNamespace) {
+			delete(a.data, key)
+		}
+	}
 	return nil
 }
 
