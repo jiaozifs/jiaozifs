@@ -22,28 +22,28 @@ import (
 //		C---->D
 func TestNewCommitPostorderIter(t *testing.T) {
 	ctx := context.Background()
-	postgres, _, db := testhelper.SetupDatabase(ctx, t)
-	defer postgres.Stop() //nolint
+	closeDB, _, db := testhelper.SetupDatabase(ctx, t)
+	defer closeDB()
 
 	repoID := uuid.New()
 	repo := models.NewRepo(db)
-	rootCommit, err := makeCommit(ctx, repo.CommitRepo(repoID), hash.EmptyHash, "root")
+	rootCommit, err := makeCommit(ctx, repo.CommitRepo(repoID), hash.Empty, "root")
 	require.NoError(t, err)
-	commitA, err := makeCommit(ctx, repo.CommitRepo(repoID), hash.EmptyHash, "commit a", rootCommit.Hash)
-	require.NoError(t, err)
-
-	commitB, err := makeCommit(ctx, repo.CommitRepo(repoID), hash.EmptyHash, "commt b", commitA.Hash)
+	commitA, err := makeCommit(ctx, repo.CommitRepo(repoID), hash.Empty, "commit a", rootCommit.Hash)
 	require.NoError(t, err)
 
-	commitC, err := makeCommit(ctx, repo.CommitRepo(repoID), hash.EmptyHash, "commit c", rootCommit.Hash)
-	require.NoError(t, err)
-	commitD, err := makeCommit(ctx, repo.CommitRepo(repoID), hash.EmptyHash, "commit d", commitC.Hash)
+	commitB, err := makeCommit(ctx, repo.CommitRepo(repoID), hash.Empty, "commt b", commitA.Hash)
 	require.NoError(t, err)
 
-	commitE, err := makeCommit(ctx, repo.CommitRepo(repoID), hash.EmptyHash, "commit e", commitB.Hash, commitD.Hash)
+	commitC, err := makeCommit(ctx, repo.CommitRepo(repoID), hash.Empty, "commit c", rootCommit.Hash)
+	require.NoError(t, err)
+	commitD, err := makeCommit(ctx, repo.CommitRepo(repoID), hash.Empty, "commit d", commitC.Hash)
 	require.NoError(t, err)
 
-	commitF, err := makeCommit(ctx, repo.CommitRepo(repoID), hash.EmptyHash, "commit f", commitE.Hash)
+	commitE, err := makeCommit(ctx, repo.CommitRepo(repoID), hash.Empty, "commit e", commitB.Hash, commitD.Hash)
+	require.NoError(t, err)
+
+	commitF, err := makeCommit(ctx, repo.CommitRepo(repoID), hash.Empty, "commit f", commitE.Hash)
 	require.NoError(t, err)
 
 	commitFNode := NewWrapCommitNode(repo.CommitRepo(repoID), commitF)
@@ -125,28 +125,28 @@ func TestNewCommitPostorderIter(t *testing.T) {
 //		C---->D
 func TestCommitPreorderIter(t *testing.T) {
 	ctx := context.Background()
-	postgres, _, db := testhelper.SetupDatabase(ctx, t)
-	defer postgres.Stop() //nolint
+	closeDB, _, db := testhelper.SetupDatabase(ctx, t)
+	defer closeDB()
 
 	repoID := uuid.New()
 	repo := models.NewRepo(db)
-	rootCommit, err := makeCommit(ctx, repo.CommitRepo(repoID), hash.EmptyHash, "root")
+	rootCommit, err := makeCommit(ctx, repo.CommitRepo(repoID), hash.Empty, "root")
 	require.NoError(t, err)
-	commitA, err := makeCommit(ctx, repo.CommitRepo(repoID), hash.EmptyHash, "commit a", rootCommit.Hash)
-	require.NoError(t, err)
-
-	commitB, err := makeCommit(ctx, repo.CommitRepo(repoID), hash.EmptyHash, "commt b", commitA.Hash)
+	commitA, err := makeCommit(ctx, repo.CommitRepo(repoID), hash.Empty, "commit a", rootCommit.Hash)
 	require.NoError(t, err)
 
-	commitC, err := makeCommit(ctx, repo.CommitRepo(repoID), hash.EmptyHash, "commit c", rootCommit.Hash)
-	require.NoError(t, err)
-	commitD, err := makeCommit(ctx, repo.CommitRepo(repoID), hash.EmptyHash, "commit d", commitC.Hash)
+	commitB, err := makeCommit(ctx, repo.CommitRepo(repoID), hash.Empty, "commt b", commitA.Hash)
 	require.NoError(t, err)
 
-	commitE, err := makeCommit(ctx, repo.CommitRepo(repoID), hash.EmptyHash, "commit e", commitB.Hash, commitD.Hash)
+	commitC, err := makeCommit(ctx, repo.CommitRepo(repoID), hash.Empty, "commit c", rootCommit.Hash)
+	require.NoError(t, err)
+	commitD, err := makeCommit(ctx, repo.CommitRepo(repoID), hash.Empty, "commit d", commitC.Hash)
 	require.NoError(t, err)
 
-	commitF, err := makeCommit(ctx, repo.CommitRepo(repoID), hash.EmptyHash, "commit f", commitE.Hash)
+	commitE, err := makeCommit(ctx, repo.CommitRepo(repoID), hash.Empty, "commit e", commitB.Hash, commitD.Hash)
+	require.NoError(t, err)
+
+	commitF, err := makeCommit(ctx, repo.CommitRepo(repoID), hash.Empty, "commit f", commitE.Hash)
 	require.NoError(t, err)
 
 	commitFNode := NewWrapCommitNode(repo.CommitRepo(repoID), commitF)

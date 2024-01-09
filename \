@@ -1,0 +1,23 @@
+feat: add models and api stubs
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# interactive rebase in progress; onto 571ab23
+# Last command done (1 command done):
+#    pick 541e6f6 feat: add models and api stubs
+# Next commands to do (3 remaining commands):
+#    pick 2d7335b fix
+#    pick ef83382 feat: impl mergerequest api
+# You are currently rebasing branch 'feat/add_mergerequest_api' on '571ab23'.
+#
+# Changes to be committed:
+#	modified:   api/api_impl/impl.go
+#	modified:   api/jiaozifs.gen.go
+#	modified:   api/swagger.yml
+#	new file:   controller/merge_request_ctl.go
+#	modified:   models/merge_request.go
+#	modified:   versionmgr/changes.go
+#	new file:   versionmgr/conflict.go
+#	modified:   versionmgr/work_repo.go
+#

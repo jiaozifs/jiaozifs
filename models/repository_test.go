@@ -15,8 +15,8 @@ import (
 
 func TestRepositoryUpdate(t *testing.T) {
 	ctx := context.Background()
-	postgres, _, db := testhelper.SetupDatabase(ctx, t)
-	defer postgres.Stop() //nolint
+	closeDB, _, db := testhelper.SetupDatabase(ctx, t)
+	defer closeDB()
 
 	repo := models.NewRepositoryRepo(db)
 
@@ -49,8 +49,8 @@ func TestRepositoryUpdate(t *testing.T) {
 
 func TestRepositoryRepoInsert(t *testing.T) {
 	ctx := context.Background()
-	postgres, _, db := testhelper.SetupDatabase(ctx, t)
-	defer postgres.Stop() //nolint
+	closeDB, _, db := testhelper.SetupDatabase(ctx, t)
+	defer closeDB()
 
 	repo := models.NewRepositoryRepo(db)
 

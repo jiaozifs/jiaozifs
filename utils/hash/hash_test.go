@@ -49,7 +49,7 @@ func TestHashFromHex(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
 		hash, err := FromHex("")
 		require.NoError(t, err)
-		require.Equal(t, EmptyHash, hash)
+		require.Equal(t, Empty, hash)
 	})
 
 	t.Run("data", func(t *testing.T) {

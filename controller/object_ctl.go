@@ -69,7 +69,7 @@ func (oct ObjectController) DeleteObject(ctx context.Context, w *api.JiaozifsRes
 		return
 	}
 
-	treeHash := hash.EmptyHash
+	treeHash := hash.Empty
 	if !wip.CurrentTree.IsEmpty() {
 		treeHash = wip.CurrentTree
 	}

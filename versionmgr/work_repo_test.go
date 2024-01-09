@@ -27,8 +27,8 @@ import (
 
 func TestTreeWriteBlob(t *testing.T) {
 	ctx := context.Background()
-	postgres, _, db := testhelper.SetupDatabase(ctx, t)
-	defer postgres.Stop() //nolint
+	closeDB, _, db := testhelper.SetupDatabase(ctx, t)
+	defer closeDB()
 
 	adapter := mem.New(ctx)
 	repo := models.NewRepo(db)
@@ -68,8 +68,8 @@ func TestNewWorkRepositoryFromConfig(t *testing.T) {
 	tmpDir, err := os.MkdirTemp(os.TempDir(), "*")
 	require.NoError(t, err)
 
-	postgres, _, db := testhelper.SetupDatabase(ctx, t)
-	defer postgres.Stop() //nolint
+	closeDB, _, db := testhelper.SetupDatabase(ctx, t)
+	defer closeDB()
 
 	repo := models.NewRepo(db)
 	user, err := makeUser(ctx, repo.UserRepo(), "admin")
@@ -174,8 +174,8 @@ func TestNewWorkRepositoryFromConfig(t *testing.T) {
 func TestWorkRepositoryRootTree(t *testing.T) {
 	ctx := context.Background()
 
-	postgres, _, db := testhelper.SetupDatabase(ctx, t)
-	defer postgres.Stop() //nolint
+	closeDB, _, db := testhelper.SetupDatabase(ctx, t)
+	defer closeDB()
 
 	repo := models.NewRepo(db)
 	user, err := makeUser(ctx, repo.UserRepo(), "admin")
@@ -210,8 +210,8 @@ func TestWorkRepositoryRootTree(t *testing.T) {
 
 func TestWorkRepositoryRevert(t *testing.T) {
 	ctx := context.Background()
-	postgres, _, db := testhelper.SetupDatabase(ctx, t)
-	defer postgres.Stop() //nolint
+	closeDB, _, db := testhelper.SetupDatabase(ctx, t)
+	defer closeDB()
 
 	repo := models.NewRepo(db)
 	adapter := mem.New(ctx)
@@ -353,6 +353,187 @@ func TestWorkRepositoryRevert(t *testing.T) {
 	})
 }
 
+func TestWorkRepositoryMergeState(t *testing.T) {
+	ctx := context.Background()
+	closeDB, _, db := testhelper.SetupDatabase(ctx, t)
+	defer closeDB()
+	repo := models.NewRepo(db)
+
+	user, err := makeUser(ctx, repo.UserRepo(), "admin")
+	require.NoError(t, err)
+
+	t.Run("not on branch", func(t *testing.T) {
+		adapter := mem.New(ctx)
+
+		project, err := makeRepository(ctx, repo, user, t.Name())
+		require.NoError(t, err)
+		testData1 := `
+1|a.txt	|a
+`
+		workRepo := NewWorkRepositoryFromAdapter(ctx, user, project, repo, adapter)
+
+		//base branch
+		err = workRepo.CheckOut(ctx, InCommit, hash.Empty.Hex())
+		require.NoError(t, err)
+		_, err = workRepo.CreateBranch(ctx, "feat/base")
+		require.NoError(t, err)
+		baseCommit, err := addChangesToWip(ctx, workRepo, "feat/base", "base commit", testData1)
+		require.NoError(t, err)
+
+		_, err = workRepo.GetMergeState(ctx, baseCommit.Hash)
+		require.Error(t, err)
+	})
+
+	t.Run("base is nil", func(t *testing.T) {
+		adapter := mem.New(ctx)
+
+		project, err := makeRepository(ctx, repo, user, t.Name())
+		require.NoError(t, err)
+		testData1 := `
+1|a.txt	|a
+`
+		workRepo := NewWorkRepositoryFromAdapter(ctx, user, project, repo, adapter)
+
+		//base branch
+		err = workRepo.CheckOut(ctx, InCommit, hash.Empty.Hex())
+		require.NoError(t, err)
+		_, err = workRepo.CreateBranch(ctx, "feat/base")
+		require.NoError(t, err)
+		baseCommit, err := addChangesToWip(ctx, workRepo, "feat/base", "base commit", testData1)
+		require.NoError(t, err)
+
+		err = workRepo.CheckOut(ctx, InBranch, "main")
+		require.NoError(t, err)
+		changes, err := workRepo.GetMergeState(ctx, baseCommit.Hash)
+		require.NoError(t, err)
+		require.Len(t, changes, 1)
+	})
+	t.Run("toMerge is nil", func(t *testing.T) {
+		adapter := mem.New(ctx)
+
+		project, err := makeRepository(ctx, repo, user, t.Name())
+		require.NoError(t, err)
+		testData1 := `
+1|a.txt	|a
+`
+		workRepo := NewWorkRepositoryFromAdapter(ctx, user, project, repo, adapter)
+
+		//base branch
+		err = workRepo.CheckOut(ctx, InCommit, hash.Empty.Hex())
+		require.NoError(t, err)
+		_, err = workRepo.CreateBranch(ctx, "feat/base")
+		require.NoError(t, err)
+		_, err = addChangesToWip(ctx, workRepo, "feat/base", "base commit", testData1)
+		require.NoError(t, err)
+
+		err = workRepo.CheckOut(ctx, InBranch, "feat/base")
+		require.NoError(t, err)
+		changes, err := workRepo.GetMergeState(ctx, hash.Empty)
+		require.NoError(t, err)
+		require.Len(t, changes, 1)
+	})
+
+	t.Run("both is nil", func(t *testing.T) {
+		adapter := mem.New(ctx)
+
+		project, err := makeRepository(ctx, repo, user, t.Name())
+		require.NoError(t, err)
+
+		workRepo := NewWorkRepositoryFromAdapter(ctx, user, project, repo, adapter)
+
+		err = workRepo.CheckOut(ctx, InBranch, "main")
+		require.NoError(t, err)
+		_, err = workRepo.GetMergeState(ctx, hash.Empty)
+		require.Error(t, err)
+	})
+
+	t.Run("no common root", func(t *testing.T) {
+		adapter := mem.New(ctx)
+
+		project, err := makeRepository(ctx, repo, user, t.Name())
+		require.NoError(t, err)
+		//commit1  a.txt b/c.txt  b/e.txt
+		//commit2  a.txt b/d.txt  b/e.txt
+		testData1 := `
+1|a.txt	|a
+`
+		workRepo := NewWorkRepositoryFromAdapter(ctx, user, project, repo, adapter)
+
+		//base branch
+		err = workRepo.CheckOut(ctx, InCommit, hash.Empty.Hex())
+		require.NoError(t, err)
+		_, err = workRepo.CreateBranch(ctx, "feat/base")
+		require.NoError(t, err)
+		_, err = addChangesToWip(ctx, workRepo, "feat/base", "base commit", testData1)
+		require.NoError(t, err)
+
+		testData2 := `
+1|b/g.txt |g1
+`
+
+		err = workRepo.CheckOut(ctx, InBranch, "main")
+		require.NoError(t, err)
+		_, err = workRepo.CreateBranch(ctx, "feat/diff")
+		require.NoError(t, err)
+
+		secondCommit, err := addChangesToWip(ctx, workRepo, "feat/diff", "merge commit", testData2)
+		require.NoError(t, err)
+
+		err = workRepo.CheckOut(ctx, InBranch, "feat/base")
+		require.NoError(t, err)
+		_, err = workRepo.GetMergeState(ctx, secondCommit.Hash)
+		require.Error(t, err)
+	})
+
+	t.Run("get merge state", func(t *testing.T) {
+		adapter := mem.New(ctx)
+
+		project, err := makeRepository(ctx, repo, user, t.Name())
+		require.NoError(t, err)
+		//commit1  a.txt b/c.txt  b/e.txt
+		//commit2  a.txt b/d.txt  b/e.txt
+
+		workRepo := NewWorkRepositoryFromAdapter(ctx, user, project, repo, adapter)
+		err = workRepo.CheckOut(ctx, InBranch, "main")
+		require.NoError(t, err)
+		_, err = workRepo.CreateBranch(ctx, "feat/init")
+		require.NoError(t, err)
+		testData := `
+1|readme.md	|a
+`
+		_, err = addChangesToWip(ctx, workRepo, "main", "init commit", testData)
+		require.NoError(t, err)
+
+		testData1 := `
+1|a.txt	|a
+`
+		//base branch
+		err = workRepo.CheckOut(ctx, InBranch, "main")
+		require.NoError(t, err)
+		_, err = workRepo.CreateBranch(ctx, "feat/base")
+		require.NoError(t, err)
+		_, err = addChangesToWip(ctx, workRepo, "feat/base", "base commit", testData1)
+		require.NoError(t, err)
+
+		testData2 := `
+1|b/g.txt |g1
+`
+
+		err = workRepo.CheckOut(ctx, InBranch, "main")
+		require.NoError(t, err)
+		_, err = workRepo.CreateBranch(ctx, "feat/diff")
+		require.NoError(t, err)
+		secondCommit, err := addChangesToWip(ctx, workRepo, "feat/diff", "merge commit", testData2)
+		require.NoError(t, err)
+
+		err = workRepo.CheckOut(ctx, InBranch, "feat/base")
+		require.NoError(t, err)
+		changes, err := workRepo.GetMergeState(ctx, secondCommit.Hash)
+		require.NoError(t, err)
+		require.Len(t, changes, 2)
+	})
+}
+
 func makeUser(ctx context.Context, userRepo models.IUserRepo, name string) (*models.User, error) {
 	user := &models.User{
 		Name:              name,
@@ -383,7 +564,7 @@ func makeRepository(ctx context.Context, repo models.IRepo, user *models.User, n
 	}
 	_, err = repo.BranchRepo().Insert(ctx, &models.Branch{
 		RepositoryID: repoModel.ID,
-		CommitHash:   hash.EmptyHash,
+		CommitHash:   hash.Empty,
 		Name:         "main",
 		Description:  nil,
 		CreatedAt:    time.Now(),

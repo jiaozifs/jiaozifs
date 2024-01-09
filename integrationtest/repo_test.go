@@ -351,7 +351,7 @@ func RepoSpec(ctx context.Context, urlStr string) func(c convey.C) {
 				convey.So(resp.StatusCode, convey.ShouldEqual, http.StatusNotFound)
 			})
 
-			createBranch(ctx, c, client, userName, repoName, "main", "feat/ano_branch")
+			createBranch(ctx, c, client, "create branch", userName, repoName, "main", "feat/ano_branch")
 			c.Convey("update default head success", func() {
 				resp, err := client.UpdateRepository(ctx, userName, repoName, api.UpdateRepositoryJSONRequestBody{
 					Head: utils.String("feat/ano_branch"),

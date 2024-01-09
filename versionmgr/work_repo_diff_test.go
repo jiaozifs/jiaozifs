@@ -14,8 +14,8 @@ import (
 
 func TestWorkRepositoryDiffCommit(t *testing.T) {
 	ctx := context.Background()
-	postgres, _, db := testhelper.SetupDatabase(ctx, t)
-	defer postgres.Stop() //nolint
+	closeDB, _, db := testhelper.SetupDatabase(ctx, t)
+	defer closeDB()
 
 	repo := models.NewRepo(db)
 	adapter := mem.New(ctx)
@@ -36,7 +36,7 @@ func TestWorkRepositoryDiffCommit(t *testing.T) {
 	workRepo := NewWorkRepositoryFromAdapter(ctx, user, project, repo, adapter)
 
 	//base branch
-	err = workRepo.CheckOut(ctx, InCommit, hash.EmptyHash.Hex())
+	err = workRepo.CheckOut(ctx, InCommit, hash.Empty.Hex())
 	require.NoError(t, err)
 	_, err = workRepo.CreateBranch(ctx, "feat/base")
 	require.NoError(t, err)

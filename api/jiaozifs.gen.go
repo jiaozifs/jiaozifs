@@ -100,6 +100,14 @@ type Change struct {
 // ChangeAction defines model for Change.Action.
 type ChangeAction int
 
+// ChangePair defines model for ChangePair.
+type ChangePair struct {
+	IsConflict bool    `json:"is_conflict"`
+	Left       *Change `json:"left,omitempty"`
+	Path       string  `json:"path"`
+	Right      *Change `json:"right,omitempty"`
+}
+
 // Commit defines model for Commit.
 type Commit struct {
 	Author       Signature          `json:"author"`
@@ -112,6 +120,14 @@ type Commit struct {
 	RepositoryId openapi_types.UUID `json:"repository_id"`
 	TreeHash     string             `json:"tree_hash"`
 	UpdatedAt    time.Time          `json:"updated_at"`
+}
+
+// CreateMergeRequest defines model for CreateMergeRequest.
+type CreateMergeRequest struct {
+	Description      *string `json:"description,omitempty"`
+	SourceBranchName string  `json:"source_branch_name"`
+	TargetBranchName string  `json:"target_branch_name"`
+	Title            string  `json:"title"`
 }
 
 // CreateRepository defines model for CreateRepository.
@@ -161,6 +177,52 @@ type LoginConfig struct {
 // LoginConfigRBAC RBAC will remain enabled on GUI if "external".  That only works
 // with an external auth service.
 type LoginConfigRBAC string
+
+// MergeMergeRequest defines model for MergeMergeRequest.
+type MergeMergeRequest struct {
+	// ConflictResolve use to record the resolution of the conflict, example({"b/a.txt":"base"})
+	ConflictResolve *map[string]string `json:"conflict_resolve,omitempty"`
+	Msg             string             `json:"msg"`
+}
+
+// MergeRequest defines model for MergeRequest.
+type MergeRequest struct {
+	AuthorId     openapi_types.UUID `json:"author_id"`
+	CreatedAt    time.Time          `json:"created_at"`
+	Description  *string            `json:"description,omitempty"`
+	Id           openapi_types.UUID `json:"id"`
+	MergeStatus  int                `json:"merge_status"`
+	Sequence     uint64             `json:"sequence"`
+	SourceBranch openapi_types.UUID `json:"source_branch"`
+	SourceRepoId openapi_types.UUID `json:"source_repo_id"`
+	TargetBranch openapi_types.UUID `json:"target_branch"`
+	TargetRepoId openapi_types.UUID `json:"target_repo_id"`
+	Title        string             `json:"title"`
+	UpdatedAt    time.Time          `json:"updated_at"`
+}
+
+// MergeRequestFullState defines model for MergeRequestFullState.
+type MergeRequestFullState struct {
+	AuthorId     openapi_types.UUID `json:"author_id"`
+	Changes      []ChangePair       `json:"changes"`
+	CreatedAt    time.Time          `json:"created_at"`
+	Description  *string            `json:"description,omitempty"`
+	Id           openapi_types.UUID `json:"id"`
+	MergeStatus  int                `json:"merge_status"`
+	Sequence     uint64             `json:"sequence"`
+	SourceBranch openapi_types.UUID `json:"source_branch"`
+	SourceRepoId openapi_types.UUID `json:"source_repo_id"`
+	TargetBranch openapi_types.UUID `json:"target_branch"`
+	TargetRepoId openapi_types.UUID `json:"target_repo_id"`
+	Title        string             `json:"title"`
+	UpdatedAt    time.Time          `json:"updated_at"`
+}
+
+// MergeRequestList defines model for MergeRequestList.
+type MergeRequestList struct {
+	Pagination Pagination     `json:"pagination"`
+	Results    []MergeRequest `json:"results"`
+}
 
 // ObjectStats defines model for ObjectStats.
 type ObjectStats struct {
@@ -237,10 +299,23 @@ type Signature struct {
 	When  time.Time           `json:"when"`
 }
 
+// UpdateMergeRequest defines model for UpdateMergeRequest.
+type UpdateMergeRequest struct {
+	Description *string `json:"description,omitempty"`
+	Status      *int    `json:"status,omitempty"`
+	Title       *string `json:"title,omitempty"`
+}
+
 // UpdateRepository defines model for UpdateRepository.
 type UpdateRepository struct {
 	Description *string `json:"description,omitempty"`
 	Head        *string `json:"head,omitempty"`
+}
+
+// UpdateWip defines model for UpdateWip.
+type UpdateWip struct {
+	BaseCommit  *string `json:"base_commit,omitempty"`
+	CurrentTree *string `json:"current_tree,omitempty"`
 }
 
 // UserInfo defines model for UserInfo.
@@ -305,6 +380,16 @@ type PaginationRepoAfter = time.Time
 type LoginJSONBody struct {
 	Name     string `json:"name"`
 	Password string `json:"password"`
+}
+
+// ListMergeRequestsParams defines parameters for ListMergeRequests.
+type ListMergeRequestsParams struct {
+	// After return items after this value
+	After *PaginationRepoAfter `form:"after,omitempty" json:"after,omitempty"`
+
+	// Amount how many items to return
+	Amount *PaginationAmount `form:"amount,omitempty" json:"amount,omitempty"`
+	State  *int              `form:"state,omitempty" json:"state,omitempty"`
 }
 
 // DeleteObjectParams defines parameters for DeleteObject.
@@ -455,6 +540,12 @@ type GetWipParams struct {
 	RefName string `form:"refName" json:"refName"`
 }
 
+// UpdateWipParams defines parameters for UpdateWip.
+type UpdateWipParams struct {
+	// RefName ref name
+	RefName string `form:"refName" json:"refName"`
+}
+
 // GetWipChangesParams defines parameters for GetWipChanges.
 type GetWipChangesParams struct {
 	// RefName ref name
@@ -485,6 +576,15 @@ type RevertWipChangesParams struct {
 // LoginJSONRequestBody defines body for Login for application/json ContentType.
 type LoginJSONRequestBody LoginJSONBody
 
+// UpdateMergeRequestJSONRequestBody defines body for UpdateMergeRequest for application/json ContentType.
+type UpdateMergeRequestJSONRequestBody = UpdateMergeRequest
+
+// CreateMergeRequestJSONRequestBody defines body for CreateMergeRequest for application/json ContentType.
+type CreateMergeRequestJSONRequestBody = CreateMergeRequest
+
+// MergeJSONRequestBody defines body for Merge for application/json ContentType.
+type MergeJSONRequestBody = MergeMergeRequest
+
 // UploadObjectMultipartRequestBody defines body for UploadObject for multipart/form-data ContentType.
 type UploadObjectMultipartRequestBody UploadObjectMultipartBody
 
@@ -499,6 +599,9 @@ type RegisterJSONRequestBody = UserRegisterInfo
 
 // CreateRepositoryJSONRequestBody defines body for CreateRepository for application/json ContentType.
 type CreateRepositoryJSONRequestBody = CreateRepository
+
+// UpdateWipJSONRequestBody defines body for UpdateWip for application/json ContentType.
+type UpdateWipJSONRequestBody = UpdateWip
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -581,6 +684,27 @@ type ClientInterface interface {
 	// Logout request
 	Logout(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetMergeRequest request
+	GetMergeRequest(ctx context.Context, owner string, repository string, mrSeq uint64, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateMergeRequestWithBody request with any body
+	UpdateMergeRequestWithBody(ctx context.Context, owner string, repository string, mrSeq uint64, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateMergeRequest(ctx context.Context, owner string, repository string, mrSeq uint64, body UpdateMergeRequestJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListMergeRequests request
+	ListMergeRequests(ctx context.Context, owner string, repository string, params *ListMergeRequestsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateMergeRequestWithBody request with any body
+	CreateMergeRequestWithBody(ctx context.Context, owner string, repository string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateMergeRequest(ctx context.Context, owner string, repository string, body CreateMergeRequestJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// MergeWithBody request with any body
+	MergeWithBody(ctx context.Context, owner string, repository string, mrSeq uint64, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	Merge(ctx context.Context, owner string, repository string, mrSeq uint64, body MergeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// DeleteObject request
 	DeleteObject(ctx context.Context, owner string, repository string, params *DeleteObjectParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -661,6 +785,11 @@ type ClientInterface interface {
 	// GetWip request
 	GetWip(ctx context.Context, owner string, repository string, params *GetWipParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// UpdateWipWithBody request with any body
+	UpdateWipWithBody(ctx context.Context, owner string, repository string, params *UpdateWipParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateWip(ctx context.Context, owner string, repository string, params *UpdateWipParams, body UpdateWipJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetWipChanges request
 	GetWipChanges(ctx context.Context, owner string, repository string, params *GetWipChangesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -700,6 +829,102 @@ func (c *Client) Login(ctx context.Context, body LoginJSONRequestBody, reqEditor
 
 func (c *Client) Logout(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewLogoutRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetMergeRequest(ctx context.Context, owner string, repository string, mrSeq uint64, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetMergeRequestRequest(c.Server, owner, repository, mrSeq)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateMergeRequestWithBody(ctx context.Context, owner string, repository string, mrSeq uint64, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateMergeRequestRequestWithBody(c.Server, owner, repository, mrSeq, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateMergeRequest(ctx context.Context, owner string, repository string, mrSeq uint64, body UpdateMergeRequestJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateMergeRequestRequest(c.Server, owner, repository, mrSeq, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListMergeRequests(ctx context.Context, owner string, repository string, params *ListMergeRequestsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListMergeRequestsRequest(c.Server, owner, repository, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateMergeRequestWithBody(ctx context.Context, owner string, repository string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateMergeRequestRequestWithBody(c.Server, owner, repository, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateMergeRequest(ctx context.Context, owner string, repository string, body CreateMergeRequestJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateMergeRequestRequest(c.Server, owner, repository, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) MergeWithBody(ctx context.Context, owner string, repository string, mrSeq uint64, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMergeRequestWithBody(c.Server, owner, repository, mrSeq, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) Merge(ctx context.Context, owner string, repository string, mrSeq uint64, body MergeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMergeRequest(c.Server, owner, repository, mrSeq, body)
 	if err != nil {
 		return nil, err
 	}
@@ -1046,6 +1271,30 @@ func (c *Client) GetWip(ctx context.Context, owner string, repository string, pa
 	return c.Client.Do(req)
 }
 
+func (c *Client) UpdateWipWithBody(ctx context.Context, owner string, repository string, params *UpdateWipParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateWipRequestWithBody(c.Server, owner, repository, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateWip(ctx context.Context, owner string, repository string, params *UpdateWipParams, body UpdateWipJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateWipRequest(c.Server, owner, repository, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetWipChanges(ctx context.Context, owner string, repository string, params *GetWipChangesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetWipChangesRequest(c.Server, owner, repository, params)
 	if err != nil {
@@ -1157,6 +1406,325 @@ func NewLogoutRequest(server string) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewGetMergeRequestRequest generates requests for GetMergeRequest
+func NewGetMergeRequestRequest(server string, owner string, repository string, mrSeq uint64) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "owner", runtime.ParamLocationPath, owner)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "repository", runtime.ParamLocationPath, repository)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "mrSeq", runtime.ParamLocationPath, mrSeq)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/mergequest/%s/%s/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUpdateMergeRequestRequest calls the generic UpdateMergeRequest builder with application/json body
+func NewUpdateMergeRequestRequest(server string, owner string, repository string, mrSeq uint64, body UpdateMergeRequestJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateMergeRequestRequestWithBody(server, owner, repository, mrSeq, "application/json", bodyReader)
+}
+
+// NewUpdateMergeRequestRequestWithBody generates requests for UpdateMergeRequest with any type of body
+func NewUpdateMergeRequestRequestWithBody(server string, owner string, repository string, mrSeq uint64, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "owner", runtime.ParamLocationPath, owner)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "repository", runtime.ParamLocationPath, repository)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "mrSeq", runtime.ParamLocationPath, mrSeq)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/mergequest/%s/%s/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewListMergeRequestsRequest generates requests for ListMergeRequests
+func NewListMergeRequestsRequest(server string, owner string, repository string, params *ListMergeRequestsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "owner", runtime.ParamLocationPath, owner)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "repository", runtime.ParamLocationPath, repository)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/mergerequest/%s/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.After != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "after", runtime.ParamLocationQuery, *params.After); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Amount != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "amount", runtime.ParamLocationQuery, *params.Amount); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.State != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "state", runtime.ParamLocationQuery, *params.State); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewCreateMergeRequestRequest calls the generic CreateMergeRequest builder with application/json body
+func NewCreateMergeRequestRequest(server string, owner string, repository string, body CreateMergeRequestJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateMergeRequestRequestWithBody(server, owner, repository, "application/json", bodyReader)
+}
+
+// NewCreateMergeRequestRequestWithBody generates requests for CreateMergeRequest with any type of body
+func NewCreateMergeRequestRequestWithBody(server string, owner string, repository string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "owner", runtime.ParamLocationPath, owner)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "repository", runtime.ParamLocationPath, repository)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/mergerequest/%s/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewMergeRequest calls the generic Merge builder with application/json body
+func NewMergeRequest(server string, owner string, repository string, mrSeq uint64, body MergeJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewMergeRequestWithBody(server, owner, repository, mrSeq, "application/json", bodyReader)
+}
+
+// NewMergeRequestWithBody generates requests for Merge with any type of body
+func NewMergeRequestWithBody(server string, owner string, repository string, mrSeq uint64, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "owner", runtime.ParamLocationPath, owner)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "repository", runtime.ParamLocationPath, repository)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "mrSeq", runtime.ParamLocationPath, mrSeq)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/mergerequest/%s/%s/%s/merge", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -2678,6 +3246,78 @@ func NewGetWipRequest(server string, owner string, repository string, params *Ge
 	return req, nil
 }
 
+// NewUpdateWipRequest calls the generic UpdateWip builder with application/json body
+func NewUpdateWipRequest(server string, owner string, repository string, params *UpdateWipParams, body UpdateWipJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateWipRequestWithBody(server, owner, repository, params, "application/json", bodyReader)
+}
+
+// NewUpdateWipRequestWithBody generates requests for UpdateWip with any type of body
+func NewUpdateWipRequestWithBody(server string, owner string, repository string, params *UpdateWipParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "owner", runtime.ParamLocationPath, owner)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "repository", runtime.ParamLocationPath, repository)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/wip/%s/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "refName", runtime.ParamLocationQuery, params.RefName); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewGetWipChangesRequest generates requests for GetWipChanges
 func NewGetWipChangesRequest(server string, owner string, repository string, params *GetWipChangesParams) (*http.Request, error) {
 	var err error
@@ -2991,6 +3631,27 @@ type ClientWithResponsesInterface interface {
 	// LogoutWithResponse request
 	LogoutWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*LogoutResponse, error)
 
+	// GetMergeRequestWithResponse request
+	GetMergeRequestWithResponse(ctx context.Context, owner string, repository string, mrSeq uint64, reqEditors ...RequestEditorFn) (*GetMergeRequestResponse, error)
+
+	// UpdateMergeRequestWithBodyWithResponse request with any body
+	UpdateMergeRequestWithBodyWithResponse(ctx context.Context, owner string, repository string, mrSeq uint64, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateMergeRequestResponse, error)
+
+	UpdateMergeRequestWithResponse(ctx context.Context, owner string, repository string, mrSeq uint64, body UpdateMergeRequestJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateMergeRequestResponse, error)
+
+	// ListMergeRequestsWithResponse request
+	ListMergeRequestsWithResponse(ctx context.Context, owner string, repository string, params *ListMergeRequestsParams, reqEditors ...RequestEditorFn) (*ListMergeRequestsResponse, error)
+
+	// CreateMergeRequestWithBodyWithResponse request with any body
+	CreateMergeRequestWithBodyWithResponse(ctx context.Context, owner string, repository string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateMergeRequestResponse, error)
+
+	CreateMergeRequestWithResponse(ctx context.Context, owner string, repository string, body CreateMergeRequestJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateMergeRequestResponse, error)
+
+	// MergeWithBodyWithResponse request with any body
+	MergeWithBodyWithResponse(ctx context.Context, owner string, repository string, mrSeq uint64, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MergeResponse, error)
+
+	MergeWithResponse(ctx context.Context, owner string, repository string, mrSeq uint64, body MergeJSONRequestBody, reqEditors ...RequestEditorFn) (*MergeResponse, error)
+
 	// DeleteObjectWithResponse request
 	DeleteObjectWithResponse(ctx context.Context, owner string, repository string, params *DeleteObjectParams, reqEditors ...RequestEditorFn) (*DeleteObjectResponse, error)
 
@@ -3071,6 +3732,11 @@ type ClientWithResponsesInterface interface {
 	// GetWipWithResponse request
 	GetWipWithResponse(ctx context.Context, owner string, repository string, params *GetWipParams, reqEditors ...RequestEditorFn) (*GetWipResponse, error)
 
+	// UpdateWipWithBodyWithResponse request with any body
+	UpdateWipWithBodyWithResponse(ctx context.Context, owner string, repository string, params *UpdateWipParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateWipResponse, error)
+
+	UpdateWipWithResponse(ctx context.Context, owner string, repository string, params *UpdateWipParams, body UpdateWipJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateWipResponse, error)
+
 	// GetWipChangesWithResponse request
 	GetWipChangesWithResponse(ctx context.Context, owner string, repository string, params *GetWipChangesParams, reqEditors ...RequestEditorFn) (*GetWipChangesResponse, error)
 
@@ -3121,6 +3787,115 @@ func (r LogoutResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r LogoutResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetMergeRequestResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *MergeRequestFullState
+}
+
+// Status returns HTTPResponse.Status
+func (r GetMergeRequestResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetMergeRequestResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateMergeRequestResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateMergeRequestResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateMergeRequestResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListMergeRequestsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *MergeRequestList
+}
+
+// Status returns HTTPResponse.Status
+func (r ListMergeRequestsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListMergeRequestsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreateMergeRequestResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *MergeRequest
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateMergeRequestResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateMergeRequestResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type MergeResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]Commit
+}
+
+// Status returns HTTPResponse.Status
+func (r MergeResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r MergeResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -3647,6 +4422,27 @@ func (r GetWipResponse) StatusCode() int {
 	return 0
 }
 
+type UpdateWipResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateWipResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateWipResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetWipChangesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -3758,6 +4554,75 @@ func (c *ClientWithResponses) LogoutWithResponse(ctx context.Context, reqEditors
 		return nil, err
 	}
 	return ParseLogoutResponse(rsp)
+}
+
+// GetMergeRequestWithResponse request returning *GetMergeRequestResponse
+func (c *ClientWithResponses) GetMergeRequestWithResponse(ctx context.Context, owner string, repository string, mrSeq uint64, reqEditors ...RequestEditorFn) (*GetMergeRequestResponse, error) {
+	rsp, err := c.GetMergeRequest(ctx, owner, repository, mrSeq, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetMergeRequestResponse(rsp)
+}
+
+// UpdateMergeRequestWithBodyWithResponse request with arbitrary body returning *UpdateMergeRequestResponse
+func (c *ClientWithResponses) UpdateMergeRequestWithBodyWithResponse(ctx context.Context, owner string, repository string, mrSeq uint64, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateMergeRequestResponse, error) {
+	rsp, err := c.UpdateMergeRequestWithBody(ctx, owner, repository, mrSeq, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateMergeRequestResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateMergeRequestWithResponse(ctx context.Context, owner string, repository string, mrSeq uint64, body UpdateMergeRequestJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateMergeRequestResponse, error) {
+	rsp, err := c.UpdateMergeRequest(ctx, owner, repository, mrSeq, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateMergeRequestResponse(rsp)
+}
+
+// ListMergeRequestsWithResponse request returning *ListMergeRequestsResponse
+func (c *ClientWithResponses) ListMergeRequestsWithResponse(ctx context.Context, owner string, repository string, params *ListMergeRequestsParams, reqEditors ...RequestEditorFn) (*ListMergeRequestsResponse, error) {
+	rsp, err := c.ListMergeRequests(ctx, owner, repository, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListMergeRequestsResponse(rsp)
+}
+
+// CreateMergeRequestWithBodyWithResponse request with arbitrary body returning *CreateMergeRequestResponse
+func (c *ClientWithResponses) CreateMergeRequestWithBodyWithResponse(ctx context.Context, owner string, repository string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateMergeRequestResponse, error) {
+	rsp, err := c.CreateMergeRequestWithBody(ctx, owner, repository, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateMergeRequestResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateMergeRequestWithResponse(ctx context.Context, owner string, repository string, body CreateMergeRequestJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateMergeRequestResponse, error) {
+	rsp, err := c.CreateMergeRequest(ctx, owner, repository, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateMergeRequestResponse(rsp)
+}
+
+// MergeWithBodyWithResponse request with arbitrary body returning *MergeResponse
+func (c *ClientWithResponses) MergeWithBodyWithResponse(ctx context.Context, owner string, repository string, mrSeq uint64, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*MergeResponse, error) {
+	rsp, err := c.MergeWithBody(ctx, owner, repository, mrSeq, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMergeResponse(rsp)
+}
+
+func (c *ClientWithResponses) MergeWithResponse(ctx context.Context, owner string, repository string, mrSeq uint64, body MergeJSONRequestBody, reqEditors ...RequestEditorFn) (*MergeResponse, error) {
+	rsp, err := c.Merge(ctx, owner, repository, mrSeq, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMergeResponse(rsp)
 }
 
 // DeleteObjectWithResponse request returning *DeleteObjectResponse
@@ -4008,6 +4873,23 @@ func (c *ClientWithResponses) GetWipWithResponse(ctx context.Context, owner stri
 	return ParseGetWipResponse(rsp)
 }
 
+// UpdateWipWithBodyWithResponse request with arbitrary body returning *UpdateWipResponse
+func (c *ClientWithResponses) UpdateWipWithBodyWithResponse(ctx context.Context, owner string, repository string, params *UpdateWipParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateWipResponse, error) {
+	rsp, err := c.UpdateWipWithBody(ctx, owner, repository, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateWipResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateWipWithResponse(ctx context.Context, owner string, repository string, params *UpdateWipParams, body UpdateWipJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateWipResponse, error) {
+	rsp, err := c.UpdateWip(ctx, owner, repository, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateWipResponse(rsp)
+}
+
 // GetWipChangesWithResponse request returning *GetWipChangesResponse
 func (c *ClientWithResponses) GetWipChangesWithResponse(ctx context.Context, owner string, repository string, params *GetWipChangesParams, reqEditors ...RequestEditorFn) (*GetWipChangesResponse, error) {
 	rsp, err := c.GetWipChanges(ctx, owner, repository, params, reqEditors...)
@@ -4081,6 +4963,126 @@ func ParseLogoutResponse(rsp *http.Response) (*LogoutResponse, error) {
 	response := &LogoutResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetMergeRequestResponse parses an HTTP response from a GetMergeRequestWithResponse call
+func ParseGetMergeRequestResponse(rsp *http.Response) (*GetMergeRequestResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetMergeRequestResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest MergeRequestFullState
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdateMergeRequestResponse parses an HTTP response from a UpdateMergeRequestWithResponse call
+func ParseUpdateMergeRequestResponse(rsp *http.Response) (*UpdateMergeRequestResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateMergeRequestResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseListMergeRequestsResponse parses an HTTP response from a ListMergeRequestsWithResponse call
+func ParseListMergeRequestsResponse(rsp *http.Response) (*ListMergeRequestsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListMergeRequestsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest MergeRequestList
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCreateMergeRequestResponse parses an HTTP response from a CreateMergeRequestWithResponse call
+func ParseCreateMergeRequestResponse(rsp *http.Response) (*CreateMergeRequestResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateMergeRequestResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest MergeRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseMergeResponse parses an HTTP response from a MergeWithResponse call
+func ParseMergeResponse(rsp *http.Response) (*MergeResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &MergeResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []Commit
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	}
 
 	return response, nil
@@ -4630,6 +5632,22 @@ func ParseGetWipResponse(rsp *http.Response) (*GetWipResponse, error) {
 	return response, nil
 }
 
+// ParseUpdateWipResponse parses an HTTP response from a UpdateWipWithResponse call
+func ParseUpdateWipResponse(rsp *http.Response) (*UpdateWipResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateWipResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseGetWipChangesResponse parses an HTTP response from a GetWipChangesWithResponse call
 func ParseGetWipChangesResponse(rsp *http.Response) (*GetWipChangesResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -4732,6 +5750,21 @@ type ServerInterface interface {
 	// perform a logout
 	// (POST /auth/logout)
 	Logout(ctx context.Context, w *JiaozifsResponse, r *http.Request)
+	// get merge request
+	// (GET /mergequest/{owner}/{repository}/{mrSeq})
+	GetMergeRequest(ctx context.Context, w *JiaozifsResponse, r *http.Request, owner string, repository string, mrSeq uint64)
+	// update merge request
+	// (POST /mergequest/{owner}/{repository}/{mrSeq})
+	UpdateMergeRequest(ctx context.Context, w *JiaozifsResponse, r *http.Request, body UpdateMergeRequestJSONRequestBody, owner string, repository string, mrSeq uint64)
+	// get list of merge request in repository
+	// (GET /mergerequest/{owner}/{repository})
+	ListMergeRequests(ctx context.Context, w *JiaozifsResponse, r *http.Request, owner string, repository string, params ListMergeRequestsParams)
+	// create merge request
+	// (POST /mergerequest/{owner}/{repository})
+	CreateMergeRequest(ctx context.Context, w *JiaozifsResponse, r *http.Request, body CreateMergeRequestJSONRequestBody, owner string, repository string)
+	// merge a mergerequest
+	// (POST /mergerequest/{owner}/{repository}/{mrSeq}/merge)
+	Merge(ctx context.Context, w *JiaozifsResponse, r *http.Request, body MergeJSONRequestBody, owner string, repository string, mrSeq uint64)
 	// delete object. Missing objects will not return a NotFound error.
 	// (DELETE /object/{owner}/{repository})
 	DeleteObject(ctx context.Context, w *JiaozifsResponse, r *http.Request, owner string, repository string, params DeleteObjectParams)
@@ -4804,6 +5837,9 @@ type ServerInterface interface {
 	// get working in process
 	// (GET /wip/{owner}/{repository})
 	GetWip(ctx context.Context, w *JiaozifsResponse, r *http.Request, owner string, repository string, params GetWipParams)
+	// update wip
+	// (POST /wip/{owner}/{repository})
+	UpdateWip(ctx context.Context, w *JiaozifsResponse, r *http.Request, body UpdateWipJSONRequestBody, owner string, repository string, params UpdateWipParams)
 	// get working in process changes
 	// (GET /wip/{owner}/{repository}/changes)
 	GetWipChanges(ctx context.Context, w *JiaozifsResponse, r *http.Request, owner string, repository string, params GetWipChangesParams)
@@ -4831,6 +5867,36 @@ func (_ Unimplemented) Login(ctx context.Context, w *JiaozifsResponse, r *http.R
 // perform a logout
 // (POST /auth/logout)
 func (_ Unimplemented) Logout(ctx context.Context, w *JiaozifsResponse, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// get merge request
+// (GET /mergequest/{owner}/{repository}/{mrSeq})
+func (_ Unimplemented) GetMergeRequest(ctx context.Context, w *JiaozifsResponse, r *http.Request, owner string, repository string, mrSeq uint64) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// update merge request
+// (POST /mergequest/{owner}/{repository}/{mrSeq})
+func (_ Unimplemented) UpdateMergeRequest(ctx context.Context, w *JiaozifsResponse, r *http.Request, body UpdateMergeRequestJSONRequestBody, owner string, repository string, mrSeq uint64) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// get list of merge request in repository
+// (GET /mergerequest/{owner}/{repository})
+func (_ Unimplemented) ListMergeRequests(ctx context.Context, w *JiaozifsResponse, r *http.Request, owner string, repository string, params ListMergeRequestsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// create merge request
+// (POST /mergerequest/{owner}/{repository})
+func (_ Unimplemented) CreateMergeRequest(ctx context.Context, w *JiaozifsResponse, r *http.Request, body CreateMergeRequestJSONRequestBody, owner string, repository string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// merge a mergerequest
+// (POST /mergerequest/{owner}/{repository}/{mrSeq}/merge)
+func (_ Unimplemented) Merge(ctx context.Context, w *JiaozifsResponse, r *http.Request, body MergeJSONRequestBody, owner string, repository string, mrSeq uint64) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -4977,6 +6043,12 @@ func (_ Unimplemented) GetWip(ctx context.Context, w *JiaozifsResponse, r *http.
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// update wip
+// (POST /wip/{owner}/{repository})
+func (_ Unimplemented) UpdateWip(ctx context.Context, w *JiaozifsResponse, r *http.Request, body UpdateWipJSONRequestBody, owner string, repository string, params UpdateWipParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // get working in process changes
 // (GET /wip/{owner}/{repository}/changes)
 func (_ Unimplemented) GetWipChanges(ctx context.Context, w *JiaozifsResponse, r *http.Request, owner string, repository string, params GetWipChangesParams) {
@@ -5047,6 +6119,295 @@ func (siw *ServerInterfaceWrapper) Logout(w http.ResponseWriter, r *http.Request
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.Logout(r.Context(), &JiaozifsResponse{w}, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r.WithContext(ctx))
+}
+
+// GetMergeRequest operation middleware
+func (siw *ServerInterfaceWrapper) GetMergeRequest(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "owner" -------------
+	var owner string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "owner", chi.URLParam(r, "owner"), &owner, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "owner", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "repository" -------------
+	var repository string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repository", chi.URLParam(r, "repository"), &repository, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repository", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "mrSeq" -------------
+	var mrSeq uint64
+
+	err = runtime.BindStyledParameterWithOptions("simple", "mrSeq", chi.URLParam(r, "mrSeq"), &mrSeq, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "mrSeq", Err: err})
+		return
+	}
+
+	ctx = context.WithValue(ctx, Jwt_tokenScopes, []string{})
+
+	ctx = context.WithValue(ctx, Basic_authScopes, []string{})
+
+	ctx = context.WithValue(ctx, Cookie_authScopes, []string{})
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetMergeRequest(r.Context(), &JiaozifsResponse{w}, r, owner, repository, mrSeq)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r.WithContext(ctx))
+}
+
+// UpdateMergeRequest operation middleware
+func (siw *ServerInterfaceWrapper) UpdateMergeRequest(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Body parse -------------
+	var body UpdateMergeRequestJSONRequestBody
+	parseBody := true
+	if parseBody {
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			http.Error(w, "Error unmarshalling body 'UpdateMergeRequest' as JSON", http.StatusBadRequest)
+			return
+		}
+	}
+
+	// ------------- Path parameter "owner" -------------
+	var owner string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "owner", chi.URLParam(r, "owner"), &owner, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "owner", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "repository" -------------
+	var repository string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repository", chi.URLParam(r, "repository"), &repository, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repository", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "mrSeq" -------------
+	var mrSeq uint64
+
+	err = runtime.BindStyledParameterWithOptions("simple", "mrSeq", chi.URLParam(r, "mrSeq"), &mrSeq, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "mrSeq", Err: err})
+		return
+	}
+
+	ctx = context.WithValue(ctx, Jwt_tokenScopes, []string{})
+
+	ctx = context.WithValue(ctx, Basic_authScopes, []string{})
+
+	ctx = context.WithValue(ctx, Cookie_authScopes, []string{})
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateMergeRequest(r.Context(), &JiaozifsResponse{w}, r, body, owner, repository, mrSeq)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r.WithContext(ctx))
+}
+
+// ListMergeRequests operation middleware
+func (siw *ServerInterfaceWrapper) ListMergeRequests(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "owner" -------------
+	var owner string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "owner", chi.URLParam(r, "owner"), &owner, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "owner", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "repository" -------------
+	var repository string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repository", chi.URLParam(r, "repository"), &repository, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repository", Err: err})
+		return
+	}
+
+	ctx = context.WithValue(ctx, Jwt_tokenScopes, []string{})
+
+	ctx = context.WithValue(ctx, Basic_authScopes, []string{})
+
+	ctx = context.WithValue(ctx, Cookie_authScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListMergeRequestsParams
+
+	// ------------- Optional query parameter "after" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "after", r.URL.Query(), &params.After)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "after", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "amount" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "amount", r.URL.Query(), &params.Amount)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "amount", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "state" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "state", r.URL.Query(), &params.State)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "state", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListMergeRequests(r.Context(), &JiaozifsResponse{w}, r, owner, repository, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r.WithContext(ctx))
+}
+
+// CreateMergeRequest operation middleware
+func (siw *ServerInterfaceWrapper) CreateMergeRequest(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Body parse -------------
+	var body CreateMergeRequestJSONRequestBody
+	parseBody := true
+	if parseBody {
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			http.Error(w, "Error unmarshalling body 'CreateMergeRequest' as JSON", http.StatusBadRequest)
+			return
+		}
+	}
+
+	// ------------- Path parameter "owner" -------------
+	var owner string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "owner", chi.URLParam(r, "owner"), &owner, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "owner", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "repository" -------------
+	var repository string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repository", chi.URLParam(r, "repository"), &repository, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repository", Err: err})
+		return
+	}
+
+	ctx = context.WithValue(ctx, Jwt_tokenScopes, []string{})
+
+	ctx = context.WithValue(ctx, Basic_authScopes, []string{})
+
+	ctx = context.WithValue(ctx, Cookie_authScopes, []string{})
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateMergeRequest(r.Context(), &JiaozifsResponse{w}, r, body, owner, repository)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r.WithContext(ctx))
+}
+
+// Merge operation middleware
+func (siw *ServerInterfaceWrapper) Merge(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Body parse -------------
+	var body MergeJSONRequestBody
+	parseBody := true
+	if parseBody {
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			http.Error(w, "Error unmarshalling body 'Merge' as JSON", http.StatusBadRequest)
+			return
+		}
+	}
+
+	// ------------- Path parameter "owner" -------------
+	var owner string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "owner", chi.URLParam(r, "owner"), &owner, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "owner", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "repository" -------------
+	var repository string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repository", chi.URLParam(r, "repository"), &repository, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repository", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "mrSeq" -------------
+	var mrSeq uint64
+
+	err = runtime.BindStyledParameterWithOptions("simple", "mrSeq", chi.URLParam(r, "mrSeq"), &mrSeq, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "mrSeq", Err: err})
+		return
+	}
+
+	ctx = context.WithValue(ctx, Jwt_tokenScopes, []string{})
+
+	ctx = context.WithValue(ctx, Basic_authScopes, []string{})
+
+	ctx = context.WithValue(ctx, Cookie_authScopes, []string{})
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.Merge(r.Context(), &JiaozifsResponse{w}, r, body, owner, repository, mrSeq)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -6393,6 +7754,75 @@ func (siw *ServerInterfaceWrapper) GetWip(w http.ResponseWriter, r *http.Request
 	handler.ServeHTTP(w, r.WithContext(ctx))
 }
 
+// UpdateWip operation middleware
+func (siw *ServerInterfaceWrapper) UpdateWip(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Body parse -------------
+	var body UpdateWipJSONRequestBody
+	parseBody := true
+	if parseBody {
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			http.Error(w, "Error unmarshalling body 'UpdateWip' as JSON", http.StatusBadRequest)
+			return
+		}
+	}
+
+	// ------------- Path parameter "owner" -------------
+	var owner string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "owner", chi.URLParam(r, "owner"), &owner, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "owner", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "repository" -------------
+	var repository string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repository", chi.URLParam(r, "repository"), &repository, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repository", Err: err})
+		return
+	}
+
+	ctx = context.WithValue(ctx, Jwt_tokenScopes, []string{})
+
+	ctx = context.WithValue(ctx, Basic_authScopes, []string{})
+
+	ctx = context.WithValue(ctx, Cookie_authScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params UpdateWipParams
+
+	// ------------- Required query parameter "refName" -------------
+
+	if paramValue := r.URL.Query().Get("refName"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "refName"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "refName", r.URL.Query(), &params.RefName)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "refName", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateWip(r.Context(), &JiaozifsResponse{w}, r, body, owner, repository, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r.WithContext(ctx))
+}
+
 // GetWipChanges operation middleware
 func (siw *ServerInterfaceWrapper) GetWipChanges(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -6767,6 +8197,21 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/auth/logout", wrapper.Logout)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/mergequest/{owner}/{repository}/{mrSeq}", wrapper.GetMergeRequest)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/mergequest/{owner}/{repository}/{mrSeq}", wrapper.UpdateMergeRequest)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/mergerequest/{owner}/{repository}", wrapper.ListMergeRequests)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/mergerequest/{owner}/{repository}", wrapper.CreateMergeRequest)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/mergerequest/{owner}/{repository}/{mrSeq}/merge", wrapper.Merge)
+	})
+	r.Group(func(r chi.Router) {
 		r.Delete(options.BaseURL+"/object/{owner}/{repository}", wrapper.DeleteObject)
 	})
 	r.Group(func(r chi.Router) {
@@ -6839,6 +8284,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/wip/{owner}/{repository}", wrapper.GetWip)
 	})
 	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/wip/{owner}/{repository}", wrapper.UpdateWip)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/wip/{owner}/{repository}/changes", wrapper.GetWipChanges)
 	})
 	r.Group(func(r chi.Router) {
@@ -6857,77 +8305,87 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"7v8DAAD//yVnSbY2hwAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

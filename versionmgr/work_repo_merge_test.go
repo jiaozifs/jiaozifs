@@ -25,8 +25,8 @@ import (
 
 func TestCommitOpMerge(t *testing.T) {
 	ctx := context.Background()
-	postgres, _, db := testhelper.SetupDatabase(ctx, t)
-	defer postgres.Stop() //nolint
+	closeDB, _, db := testhelper.SetupDatabase(ctx, t)
+	defer closeDB()
 
 	adapter := mem.New(ctx)
 	repo := models.NewRepo(db)
@@ -43,7 +43,7 @@ func TestCommitOpMerge(t *testing.T) {
 `
 	workRepo := NewWorkRepositoryFromAdapter(ctx, user, project, repo, adapter)
 
-	err = workRepo.CheckOut(ctx, InCommit, hash.EmptyHash.Hex())
+	err = workRepo.CheckOut(ctx, InCommit, hash.Empty.Hex())
 	require.NoError(t, err)
 	_, err = workRepo.CreateBranch(ctx, "feat/base")
 	require.NoError(t, err)
@@ -81,7 +81,7 @@ func TestCommitOpMerge(t *testing.T) {
 
 	//--------------CommitAB
 	require.NoError(t, workRepo.CheckOut(ctx, InBranch, "feat/branchA"))
-	commitAB, err := workRepo.Merge(ctx, user, commitB.Hash, "commit ab", LeastHashResolve)
+	commitAB, err := workRepo.Merge(ctx, commitB.Hash, "commit ab", LeastHashResolve)
 	require.NoError(t, err)
 
 	//--------------CommitF
@@ -98,7 +98,7 @@ func TestCommitOpMerge(t *testing.T) {
 
 	//commitC
 	require.NoError(t, workRepo.CheckOut(ctx, InBranch, "feat/branchF"))
-	commitC, err := workRepo.Merge(ctx, user, commitA.Hash, "commit c", LeastHashResolve)
+	commitC, err := workRepo.Merge(ctx, commitA.Hash, "commit c", LeastHashResolve)
 	require.NoError(t, err)
 
 	//commitD
@@ -124,20 +124,20 @@ func TestCommitOpMerge(t *testing.T) {
 
 	//test fast-ward
 	require.NoError(t, workRepo.CheckOut(ctx, InBranch, "feat/branchB"))
-	commitBE, err := workRepo.Merge(ctx, user, commitE.Hash, "commit ab", LeastHashResolve)
+	commitBE, err := workRepo.Merge(ctx, commitE.Hash, "commit ab", LeastHashResolve)
 	require.NoError(t, err)
 	require.Equal(t, commitE.Hash.Hex(), commitBE.Hash.Hex())
 
 	//commitG
 	require.NoError(t, workRepo.CheckOut(ctx, InBranch, "feat/branchD_E"))
-	commitG, err := workRepo.Merge(ctx, user, commitAB.Hash, "commit g", LeastHashResolve)
+	commitG, err := workRepo.Merge(ctx, commitAB.Hash, "commit g", LeastHashResolve)
 	require.NoError(t, err)
 
 	_, err = makeBranch(ctx, repo.BranchRepo(), user, "feat/branchG", project.ID, commitG.Hash)
 	require.NoError(t, err)
 
 	require.NoError(t, workRepo.CheckOut(ctx, InBranch, "feat/branchG"))
-	_, err = workRepo.Merge(ctx, user, commitC.Hash, "commit cg", LeastHashResolve)
+	_, err = workRepo.Merge(ctx, commitC.Hash, "commit cg", LeastHashResolve)
 	require.NoError(t, err)
 }
 
@@ -154,8 +154,8 @@ func TestCommitOpMerge(t *testing.T) {
 //		     B-------G
 func TestCrissCrossMerge(t *testing.T) {
 	ctx := context.Background()
-	postgres, _, db := testhelper.SetupDatabase(ctx, t)
-	defer postgres.Stop() //nolint
+	closeDB, _, db := testhelper.SetupDatabase(ctx, t)
+	defer closeDB()
 
 	repo := models.NewRepo(db)
 	adapter := mem.New(ctx)
@@ -172,7 +172,7 @@ func TestCrissCrossMerge(t *testing.T) {
 1|b.txt	|h2
 `
 
-	err = workRepo.CheckOut(ctx, InCommit, hash.EmptyHash.Hex())
+	err = workRepo.CheckOut(ctx, InCommit, hash.Empty.Hex())
 	require.NoError(t, err)
 	_, err = workRepo.CreateBranch(ctx, "feat/base")
 	require.NoError(t, err)
@@ -209,17 +209,17 @@ func TestCrissCrossMerge(t *testing.T) {
 
 	//-----------------CommitAB
 	require.NoError(t, workRepo.CheckOut(ctx, InBranch, "feat/branchB"))
-	commiyBC, err := workRepo.Merge(ctx, user, commitC.Hash, "commit bc", LeastHashResolve)
+	commiyBC, err := workRepo.Merge(ctx, commitC.Hash, "commit bc", LeastHashResolve)
 	require.NoError(t, err)
 
 	require.NoError(t, workRepo.CheckOut(ctx, InBranch, "feat/branchC"))
-	commitCB, err := workRepo.Merge(ctx, user, commitB.Hash, "commit cb", LeastHashResolve)
+	commitCB, err := workRepo.Merge(ctx, commitB.Hash, "commit cb", LeastHashResolve)
 	require.NoError(t, err)
 
 	_, err = makeBranch(ctx, repo.BranchRepo(), user, "feat/branchBC", project.ID, commiyBC.Hash)
 	require.NoError(t, err)
 
 	require.NoError(t, workRepo.CheckOut(ctx, InBranch, "feat/branchBC"))
-	_, err = workRepo.Merge(ctx, user, commitCB.Hash, "cross commit", LeastHashResolve)
+	_, err = workRepo.Merge(ctx, commitCB.Hash, "cross commit", LeastHashResolve)
 	require.NoError(t, err)
 }

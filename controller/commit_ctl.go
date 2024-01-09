@@ -48,7 +48,7 @@ func (commitCtl CommitController) GetEntriesInRef(ctx context.Context, w *api.Ji
 		return
 	}
 
-	treeHash := hash.EmptyHash
+	treeHash := hash.Empty
 	if params.Type == api.RefTypeWip {
 		refName := repository.HEAD
 		if params.Ref != nil {

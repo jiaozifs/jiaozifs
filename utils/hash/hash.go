@@ -12,20 +12,20 @@ import (
 var _ json.Marshaler = (*Hash)(nil)
 var _ json.Unmarshaler = (*Hash)(nil)
 
-var EmptyHash = Hash{}
+var Empty = Hash{}
 
 type Hash []byte
 
 func FromHex(str string) (Hash, error) {
 	if len(str) == 0 {
-		return EmptyHash, nil
+		return Empty, nil
 	}
 	return hex.DecodeString(str)
 }
 
 func (hash Hash) Hex() string {
 	if hash == nil {
-		return hex.EncodeToString(EmptyHash)
+		return hex.EncodeToString(Empty)
 	}
 	return hex.EncodeToString(hash)
 }

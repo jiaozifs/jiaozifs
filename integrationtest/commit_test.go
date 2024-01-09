@@ -23,7 +23,7 @@ func GetEntriesInRefSpec(ctx context.Context, urlStr string) func(c convey.C) {
 		createUser(ctx, c, client, userName)
 		loginAndSwitch(ctx, c, client, "kitty login", userName, false)
 		createRepo(ctx, c, client, repoName)
-		createBranch(ctx, c, client, userName, repoName, "main", branchName)
+		createBranch(ctx, c, client, "create branch", userName, repoName, "main", branchName)
 		createWip(ctx, c, client, "feat get entries test0", userName, repoName, branchName)
 		uploadObject(ctx, c, client, "update f1 to test branch", userName, repoName, branchName, "m.dat")
 		uploadObject(ctx, c, client, "update f2 to test branch", userName, repoName, branchName, "g/x.dat")
@@ -253,7 +253,7 @@ func GetEntriesInRefSpec(ctx context.Context, urlStr string) func(c convey.C) {
 			c.Convey("success to get entries in empty hash", func() {
 				resp, err := client.GetEntriesInRef(ctx, userName, repoName, &api.GetEntriesInRefParams{
 					Path: utils.String("/"),
-					Ref:  utils.String(hash.EmptyHash.Hex()),
+					Ref:  utils.String(hash.Empty.Hex()),
 					Type: api.RefTypeCommit,
 				})
 				convey.So(err, convey.ShouldBeNil)

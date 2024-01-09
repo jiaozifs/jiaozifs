@@ -15,8 +15,8 @@ import (
 
 func TestWipRepo(t *testing.T) {
 	ctx := context.Background()
-	postgres, _, db := testhelper.SetupDatabase(ctx, t)
-	defer postgres.Stop() //nolint
+	closeDB, _, db := testhelper.SetupDatabase(ctx, t)
+	defer closeDB()
 
 	repo := models.NewWipRepo(db)
 
@@ -72,8 +72,8 @@ func TestWipRepo(t *testing.T) {
 
 func TestWipRepoUpdateByID(t *testing.T) {
 	ctx := context.Background()
-	postgres, _, db := testhelper.SetupDatabase(ctx, t)
-	defer postgres.Stop() //nolint
+	closeDB, _, db := testhelper.SetupDatabase(ctx, t)
+	defer closeDB()
 
 	repo := models.NewWipRepo(db)
 

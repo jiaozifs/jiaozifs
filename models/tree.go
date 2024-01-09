@@ -262,7 +262,7 @@ func (fileTree *FileTree) TreeNode() *TreeNode {
 }
 
 type GetObjParams struct {
-	Hash hash.Hash
+	hash hash.Hash
 }
 
 func NewGetObjParams() *GetObjParams {
@@ -270,7 +270,7 @@ func NewGetObjParams() *GetObjParams {
 }
 
 func (gop *GetObjParams) SetHash(hash hash.Hash) *GetObjParams {
-	gop.Hash = hash
+	gop.hash = hash
 	return gop
 }
 
@@ -331,8 +331,8 @@ func (o FileTreeRepo) Get(ctx context.Context, params *GetObjParams) (*FileTree,
 	repo := &FileTree{}
 	query := o.db.NewSelect().Model(repo).Where("repository_id = ?", o.repositoryID)
 
-	if params.Hash != nil {
-		query = query.Where("hash = ?", params.Hash)
+	if params.hash != nil {
+		query = query.Where("hash = ?", params.hash)
 	}
 
 	err := query.Limit(1).Scan(ctx, repo)

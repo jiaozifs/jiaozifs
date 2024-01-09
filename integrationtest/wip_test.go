@@ -20,8 +20,8 @@ func WipSpec(ctx context.Context, urlStr string) func(c convey.C) {
 		createUser(ctx, c, client, userName)
 		loginAndSwitch(ctx, c, client, "july login", userName, false)
 		createRepo(ctx, c, client, repoName)
-		createBranch(ctx, c, client, userName, repoName, "main", branchName)
-		createBranch(ctx, c, client, userName, repoName, "main", branchNameForDelete)
+		createBranch(ctx, c, client, "create branch", userName, repoName, "main", branchName)
+		createBranch(ctx, c, client, "create branch for delete", userName, repoName, "main", branchNameForDelete)
 		c.Convey("list non exit wip", func(c convey.C) {
 			resp, err := client.ListWip(ctx, userName, repoName)
 			convey.So(err, convey.ShouldBeNil)

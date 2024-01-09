@@ -28,10 +28,10 @@ type Repository struct {
 }
 
 type GetRepoParams struct {
-	ID        uuid.UUID
-	CreatorID uuid.UUID
-	OwnerID   uuid.UUID
-	Name      *string
+	id        uuid.UUID
+	creatorID uuid.UUID
+	ownerID   uuid.UUID
+	name      *string
 }
 
 func NewGetRepoParams() *GetRepoParams {
@@ -39,33 +39,33 @@ func NewGetRepoParams() *GetRepoParams {
 }
 
 func (gup *GetRepoParams) SetID(id uuid.UUID) *GetRepoParams {
-	gup.ID = id
+	gup.id = id
 	return gup
 }
 
 func (gup *GetRepoParams) SetOwnerID(id uuid.UUID) *GetRepoParams {
-	gup.OwnerID = id
+	gup.ownerID = id
 	return gup
 }
 
 func (gup *GetRepoParams) SetCreatorID(creatorID uuid.UUID) *GetRepoParams {
-	gup.CreatorID = creatorID
+	gup.creatorID = creatorID
 	return gup
 }
 
 func (gup *GetRepoParams) SetName(name string) *GetRepoParams {
-	gup.Name = &name
+	gup.name = &name
 	return gup
 }
 
 type ListRepoParams struct {
-	ID        uuid.UUID
-	CreatorID uuid.UUID
-	OwnerID   uuid.UUID
-	Name      *string
-	NameMatch MatchMode
-	After     *time.Time
-	Amount    int
+	id        uuid.UUID
+	creatorID uuid.UUID
+	ownerID   uuid.UUID
+	name      *string
+	nameMatch MatchMode
+	after     *time.Time
+	amount    int
 }
 
 func NewListRepoParams() *ListRepoParams {
@@ -73,39 +73,39 @@ func NewListRepoParams() *ListRepoParams {
 }
 
 func (lrp *ListRepoParams) SetID(id uuid.UUID) *ListRepoParams {
-	lrp.ID = id
+	lrp.id = id
 	return lrp
 }
 func (lrp *ListRepoParams) SetOwnerID(ownerID uuid.UUID) *ListRepoParams {
-	lrp.OwnerID = ownerID
+	lrp.ownerID = ownerID
 	return lrp
 }
 
 func (lrp *ListRepoParams) SetName(name string, match MatchMode) *ListRepoParams {
-	lrp.Name = &name
-	lrp.NameMatch = match
+	lrp.name = &name
+	lrp.nameMatch = match
 	return lrp
 }
 
 func (lrp *ListRepoParams) SetCreatorID(creatorID uuid.UUID) *ListRepoParams {
-	lrp.CreatorID = creatorID
+	lrp.creatorID = creatorID
 	return lrp
 }
 
 func (lrp *ListRepoParams) SetAfter(after time.Time) *ListRepoParams {
-	lrp.After = &after
+	lrp.after = &after
 	return lrp
 }
 
 func (lrp *ListRepoParams) SetAmount(amount int) *ListRepoParams {
-	lrp.Amount = amount
+	lrp.amount = amount
 	return lrp
 }
 
 type DeleteRepoParams struct {
-	ID      uuid.UUID
-	OwnerID uuid.UUID
-	Name    *string
+	id      uuid.UUID
+	ownerID uuid.UUID
+	name    *string
 }
 
 func NewDeleteRepoParams() *DeleteRepoParams {
@@ -113,40 +113,39 @@ func NewDeleteRepoParams() *DeleteRepoParams {
 }
 
 func (drp *DeleteRepoParams) SetID(id uuid.UUID) *DeleteRepoParams {
-	drp.ID = id
+	drp.id = id
 	return drp
 }
 
 func (drp *DeleteRepoParams) SetOwnerID(ownerID uuid.UUID) *DeleteRepoParams {
-	drp.OwnerID = ownerID
+	drp.ownerID = ownerID
 	return drp
 }
 
 func (drp *DeleteRepoParams) SetName(name string) *DeleteRepoParams {
-	drp.Name = &name
+	drp.name = &name
 	return drp
 }
 
 type UpdateRepoParams struct {
-	bun.BaseModel `bun:"table:repositories"`
-	ID            uuid.UUID `bun:"id,pk,type:uuid,default:uuid_generate_v4()"`
-	Description   *string   `bun:"description"`
-	HEAD          *string   `bun:"head,notnull"`
+	id          uuid.UUID
+	description *string
+	head        *string
 }
 
 func NewUpdateRepoParams(id uuid.UUID) *UpdateRepoParams {
 	return &UpdateRepoParams{
-		ID: id,
+		id: id,
 	}
 }
 
 func (up *UpdateRepoParams) SetDescription(description string) *UpdateRepoParams {
-	up.Description = &description
+	up.description = &description
 	return up
 }
 
 func (up *UpdateRepoParams) SetHead(head string) *UpdateRepoParams {
-	up.HEAD = &head
+	up.head = &head
 	return up
 }
 
@@ -181,20 +180,20 @@ func (r *RepositoryRepo) Get(ctx context.Context, params *GetRepoParams) (*Repos
 	repo := &Repository{}
 	query := r.db.NewSelect().Model(repo)
 
-	if uuid.Nil != params.ID {
-		query = query.Where("id = ?", params.ID)
+	if uuid.Nil != params.id {
+		query = query.Where("id = ?", params.id)
 	}
 
-	if uuid.Nil != params.CreatorID {
-		query = query.Where("creator_id = ?", params.CreatorID)
+	if uuid.Nil != params.creatorID {
+		query = query.Where("creator_id = ?", params.creatorID)
 	}
 
-	if uuid.Nil != params.OwnerID {
-		query = query.Where("owner_id = ?", params.OwnerID)
+	if uuid.Nil != params.ownerID {
+		query = query.Where("owner_id = ?", params.ownerID)
 	}
 
-	if params.Name != nil {
-		query = query.Where("name = ?", *params.Name)
+	if params.name != nil {
+		query = query.Where("name = ?", *params.name)
 	}
 
 	err := query.Limit(1).Scan(ctx)
@@ -208,48 +207,48 @@ func (r *RepositoryRepo) List(ctx context.Context, params *ListRepoParams) ([]*R
 	repos := []*Repository{}
 	query := r.db.NewSelect().Model(&repos)
 
-	if uuid.Nil != params.CreatorID {
-		query = query.Where("creator_id = ?", params.CreatorID)
+	if uuid.Nil != params.creatorID {
+		query = query.Where("creator_id = ?", params.creatorID)
 	}
 
-	if uuid.Nil != params.OwnerID {
-		query = query.Where("owner_id = ?", params.OwnerID)
+	if uuid.Nil != params.ownerID {
+		query = query.Where("owner_id = ?", params.ownerID)
 	}
 
-	if params.Name != nil {
-		switch params.NameMatch {
+	if params.name != nil {
+		switch params.nameMatch {
 		case ExactMatch:
-			query = query.Where("name = ?", *params.Name)
+			query = query.Where("name = ?", *params.name)
 		case PrefixMatch:
-			query = query.Where("name LIKE ?", *params.Name+"%")
+			query = query.Where("name LIKE ?", *params.name+"%")
 		case SuffixMatch:
-			query = query.Where("name LIKE ?", "%"+*params.Name)
+			query = query.Where("name LIKE ?", "%"+*params.name)
 		case LikeMatch:
-			query = query.Where("name LIKE ?", "%"+*params.Name+"%")
+			query = query.Where("name LIKE ?", "%"+*params.name+"%")
 		}
 	}
 
 	query = query.Order("updated_at DESC")
-	if params.After != nil {
-		query = query.Where("updated_at < ?", *params.After)
+	if params.after != nil {
+		query = query.Where("updated_at < ?", *params.after)
 	}
 
-	err := query.Limit(params.Amount).Scan(ctx)
-	return repos, len(repos) == params.Amount, err
+	err := query.Limit(params.amount).Scan(ctx)
+	return repos, len(repos) == params.amount, err
 }
 
 func (r *RepositoryRepo) Delete(ctx context.Context, params *DeleteRepoParams) (int64, error) {
 	query := r.db.NewDelete().Model((*Repository)(nil))
-	if uuid.Nil != params.ID {
-		query = query.Where("id = ?", params.ID)
+	if uuid.Nil != params.id {
+		query = query.Where("id = ?", params.id)
 	}
 
-	if params.Name != nil {
-		query = query.Where("name = ?", params.Name)
+	if params.name != nil {
+		query = query.Where("name = ?", params.name)
 	}
 
-	if uuid.Nil != params.OwnerID {
-		query = query.Where("owner_id = ?", params.OwnerID)
+	if uuid.Nil != params.ownerID {
+		query = query.Where("owner_id = ?", params.ownerID)
 	}
 
 	sqlResult, err := query.Exec(ctx)
@@ -264,12 +263,12 @@ func (r *RepositoryRepo) Delete(ctx context.Context, params *DeleteRepoParams) (
 }
 
 func (r *RepositoryRepo) UpdateByID(ctx context.Context, updateModel *UpdateRepoParams) error {
-	updateQuery := r.db.NewUpdate().Model((*Repository)(nil)).Where("id = ?", updateModel.ID)
-	if updateModel.Description != nil {
-		updateQuery.Set("description = ?", *updateModel.Description)
+	updateQuery := r.db.NewUpdate().Model((*Repository)(nil)).Where("id = ?", updateModel.id)
+	if updateModel.description != nil {
+		updateQuery.Set("description = ?", *updateModel.description)
 	}
-	if updateModel.HEAD != nil {
-		updateQuery.Set("head = ?", *updateModel.HEAD)
+	if updateModel.head != nil {
+		updateQuery.Set("head = ?", *updateModel.head)
 	}
 	_, err := updateQuery.Exec(ctx)
 	return err

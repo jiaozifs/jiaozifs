@@ -916,3 +916,11 @@ func TimeValueMap(src map[string]*time.Time) map[string]time.Time {
 	}
 	return dst
 }
+
+// Map get value of map ptr, if ptr is nil, make empty map
+func Map[T any](src *map[string]T) map[string]T {
+	if src == nil || *src == nil {
+		return make(map[string]T)
+	}
+	return *src
+}

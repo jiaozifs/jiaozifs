@@ -18,4 +18,5 @@ type APIController struct {
 	controller.CommitController
 	controller.RepositoryController
 	controller.BranchController
+	controller.MergeRequestController
 }

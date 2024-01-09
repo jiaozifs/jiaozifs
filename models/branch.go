@@ -27,9 +27,9 @@ type Branch struct {
 }
 
 type GetBranchParams struct {
-	ID           uuid.UUID
-	RepositoryID uuid.UUID
-	Name         *string
+	id           uuid.UUID
+	repositoryID uuid.UUID
+	name         *string
 }
 
 func NewGetBranchParams() *GetBranchParams {
@@ -37,24 +37,24 @@ func NewGetBranchParams() *GetBranchParams {
 }
 
 func (gup *GetBranchParams) SetID(id uuid.UUID) *GetBranchParams {
-	gup.ID = id
+	gup.id = id
 	return gup
 }
 
 func (gup *GetBranchParams) SetRepositoryID(repositoryID uuid.UUID) *GetBranchParams {
-	gup.RepositoryID = repositoryID
+	gup.repositoryID = repositoryID
 	return gup
 }
 
 func (gup *GetBranchParams) SetName(name string) *GetBranchParams {
-	gup.Name = &name
+	gup.name = &name
 	return gup
 }
 
 type DeleteBranchParams struct {
-	ID           uuid.UUID
-	RepositoryID uuid.UUID
-	Name         *string
+	id           uuid.UUID
+	repositoryID uuid.UUID
+	name         *string
 }
 
 func NewDeleteBranchParams() *DeleteBranchParams {
@@ -62,31 +62,30 @@ func NewDeleteBranchParams() *DeleteBranchParams {
 }
 
 func (gup *DeleteBranchParams) SetRepositoryID(repositoryID uuid.UUID) *DeleteBranchParams {
-	gup.RepositoryID = repositoryID
+	gup.repositoryID = repositoryID
 	return gup
 }
 func (gup *DeleteBranchParams) SetID(id uuid.UUID) *DeleteBranchParams {
-	gup.ID = id
+	gup.id = id
 	return gup
 }
 
 func (gup *DeleteBranchParams) SetName(name string) *DeleteBranchParams {
-	gup.Name = &name
+	gup.name = &name
 	return gup
 }
 
 type UpdateBranchParams struct {
-	bun.BaseModel `bun:"table:branches"`
-	ID            uuid.UUID `bun:"id,pk,type:uuid,default:uuid_generate_v4()"`
-	CommitHash    hash.Hash `bun:"commit_hash,type:bytea,notnull"`
+	id         uuid.UUID
+	commitHash hash.Hash
 }
 
 func NewUpdateBranchParams(id uuid.UUID) *UpdateBranchParams {
-	return &UpdateBranchParams{ID: id}
+	return &UpdateBranchParams{id: id}
 }
 
 func (up *UpdateBranchParams) SetCommitHash(commitHash hash.Hash) *UpdateBranchParams {
-	up.CommitHash = commitHash
+	up.commitHash = commitHash
 	return up
 }
 
@@ -154,16 +153,16 @@ func (r BranchRepo) Get(ctx context.Context, params *GetBranchParams) (*Branch, 
 	repo := &Branch{}
 	query := r.db.NewSelect().Model(repo)
 
-	if uuid.Nil != params.ID {
-		query = query.Where("id = ?", params.ID)
+	if uuid.Nil != params.id {
+		query = query.Where("id = ?", params.id)
 	}
 
-	if uuid.Nil != params.RepositoryID {
-		query = query.Where("repository_id = ?", params.RepositoryID)
+	if uuid.Nil != params.repositoryID {
+		query = query.Where("repository_id = ?", params.repositoryID)
 	}
 
-	if params.Name != nil {
-		query = query.Where("name = ?", *params.Name)
+	if params.name != nil {
+		query = query.Where("name = ?", *params.name)
 	}
 
 	err := query.Limit(1).Scan(ctx)
@@ -206,16 +205,16 @@ func (r BranchRepo) List(ctx context.Context, params *ListBranchParams) ([]*Bran
 func (r BranchRepo) Delete(ctx context.Context, params *DeleteBranchParams) (int64, error) {
 	query := r.db.NewDelete().Model((*Branch)(nil))
 
-	if uuid.Nil != params.ID {
-		query = query.Where("id = ?", params.ID)
+	if uuid.Nil != params.id {
+		query = query.Where("id = ?", params.id)
 	}
 
-	if uuid.Nil != params.RepositoryID {
-		query = query.Where("repository_id = ?", params.RepositoryID)
+	if uuid.Nil != params.repositoryID {
+		query = query.Where("repository_id = ?", params.repositoryID)
 	}
 
-	if params.Name != nil {
-		query = query.Where("name = ?", *params.Name)
+	if params.name != nil {
+		query = query.Where("name = ?", *params.name)
 	}
 
 	sqlResult, err := query.Exec(ctx)
@@ -230,6 +229,10 @@ func (r BranchRepo) Delete(ctx context.Context, params *DeleteBranchParams) (int
 }
 
 func (r BranchRepo) UpdateByID(ctx context.Context, updateModel *UpdateBranchParams) error {
-	_, err := r.db.NewUpdate().Model(updateModel).WherePK().Exec(ctx)
+	updateQuery := r.db.NewUpdate().Model((*Branch)(nil)).Where("id = ?", updateModel.id)
+	if updateModel.commitHash != nil {
+		updateQuery.Set("commit_hash = ?", updateModel.commitHash)
+	}
+	_, err := updateQuery.Exec(ctx)
 	return err
 }

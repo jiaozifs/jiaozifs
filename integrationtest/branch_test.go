@@ -151,7 +151,7 @@ func BranchSpec(ctx context.Context, urlStr string) func(c convey.C) {
 			})
 		})
 
-		createBranch(ctx, c, client, userName, repoName, "main", "feat/sec_branch")
+		createBranch(ctx, c, client, "create sec branch", userName, repoName, "main", "feat/sec_branch")
 
 		c.Convey("list branch", func(c convey.C) {
 			c.Convey("no auth", func() {

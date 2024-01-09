@@ -23,9 +23,9 @@ type User struct {
 }
 
 type GetUserParams struct {
-	ID    uuid.UUID
-	Name  *string
-	Email *string
+	id    uuid.UUID
+	name  *string
+	email *string
 }
 
 func NewGetUserParams() *GetUserParams {
@@ -33,17 +33,17 @@ func NewGetUserParams() *GetUserParams {
 }
 
 func (gup *GetUserParams) SetID(id uuid.UUID) *GetUserParams {
-	gup.ID = id
+	gup.id = id
 	return gup
 }
 
 func (gup *GetUserParams) SetName(name string) *GetUserParams {
-	gup.Name = &name
+	gup.name = &name
 	return gup
 }
 
 func (gup *GetUserParams) SetEmail(email string) *GetUserParams {
-	gup.Email = &email
+	gup.email = &email
 	return gup
 }
 
@@ -74,16 +74,16 @@ func (userRepo *UserRepo) Get(ctx context.Context, params *GetUserParams) (*User
 	user := &User{}
 	query := userRepo.db.NewSelect().Model(user)
 
-	if uuid.Nil != params.ID {
-		query = query.Where("id = ?", params.ID)
+	if uuid.Nil != params.id {
+		query = query.Where("id = ?", params.id)
 	}
 
-	if params.Name != nil {
-		query = query.Where("name = ?", params.Name)
+	if params.name != nil {
+		query = query.Where("name = ?", params.name)
 	}
 
-	if params.Email != nil {
-		query = query.Where("email = ?", *params.Email)
+	if params.email != nil {
+		query = query.Where("email = ?", *params.email)
 	}
 
 	err := query.Limit(1).Scan(ctx)
@@ -96,16 +96,16 @@ func (userRepo *UserRepo) Get(ctx context.Context, params *GetUserParams) (*User
 func (userRepo *UserRepo) Count(ctx context.Context, params *GetUserParams) (int, error) {
 	query := userRepo.db.NewSelect().Model((*User)(nil))
 
-	if uuid.Nil != params.ID {
-		query = query.Where("id = ?", params.ID)
+	if uuid.Nil != params.id {
+		query = query.Where("id = ?", params.id)
 	}
 
-	if params.Name != nil {
-		query = query.Where("name = ?", params.Name)
+	if params.name != nil {
+		query = query.Where("name = ?", params.name)
 	}
 
-	if params.Email != nil {
-		query = query.Where("email = ?", *params.Email)
+	if params.email != nil {
+		query = query.Where("email = ?", *params.email)
 	}
 
 	return query.Count(ctx)

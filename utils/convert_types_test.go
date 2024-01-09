@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"github.com/stretchr/testify/require"
+
 	"reflect"
 	"testing"
 	"time"
@@ -1529,4 +1531,17 @@ func TestMillisecondsTimeValue(t *testing.T) {
 			t.Errorf("Unexpected value for time value at %d", idx)
 		}
 	}
+}
+
+func TestMap(t *testing.T) {
+	t.Run("nil", func(t *testing.T) {
+		var v map[string]string
+		result := Map[string](&v)
+		require.NotNil(t, result)
+	})
+	t.Run("nil", func(t *testing.T) {
+		v := make(map[string]string)
+		result := Map[string](&v)
+		require.Equal(t, v, result)
+	})
 }
