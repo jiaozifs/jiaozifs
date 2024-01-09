@@ -25,8 +25,8 @@ import (
 
 func TestCommitOpMerge(t *testing.T) {
 	ctx := context.Background()
-	postgres, _, db := testhelper.SetupDatabase(ctx, t)
-	defer postgres.Stop() //nolint
+	closeDB, _, db := testhelper.SetupDatabase(ctx, t)
+	defer closeDB()
 
 	adapter := mem.New(ctx)
 	repo := models.NewRepo(db)
@@ -154,8 +154,8 @@ func TestCommitOpMerge(t *testing.T) {
 //		     B-------G
 func TestCrissCrossMerge(t *testing.T) {
 	ctx := context.Background()
-	postgres, _, db := testhelper.SetupDatabase(ctx, t)
-	defer postgres.Stop() //nolint
+	closeDB, _, db := testhelper.SetupDatabase(ctx, t)
+	defer closeDB()
 
 	repo := models.NewRepo(db)
 	adapter := mem.New(ctx)

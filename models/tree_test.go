@@ -39,8 +39,8 @@ func Test_sortSubObjects(t *testing.T) {
 
 func TestObjectRepo_Insert(t *testing.T) {
 	ctx := context.Background()
-	postgres, _, db := testhelper.SetupDatabase(ctx, t)
-	defer postgres.Stop() //nolint
+	closeDB, _, db := testhelper.SetupDatabase(ctx, t)
+	defer closeDB()
 
 	repoID := uuid.New()
 	repo := models.NewFileTree(db, repoID)
@@ -99,8 +99,8 @@ func TestNewTreeNode(t *testing.T) {
 
 func TestFileTreeRepo_Delete(t *testing.T) {
 	ctx := context.Background()
-	postgres, _, db := testhelper.SetupDatabase(ctx, t)
-	defer postgres.Stop() //nolint
+	closeDB, _, db := testhelper.SetupDatabase(ctx, t)
+	defer closeDB()
 
 	repoID := uuid.New()
 	repo := models.NewFileTree(db, repoID)

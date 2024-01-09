@@ -57,7 +57,7 @@ func TestDoubleInit(t *testing.T) { //nolint
 type Closer func()
 
 func SetupDaemon(t *testing.T, ctx context.Context) (string, Closer) { //nolint
-	pg, connectString, _ := testhelper.SetupDatabase(ctx, t)
+	closeDB, connectString, _ := testhelper.SetupDatabase(ctx, t)
 
 	port, err := freeport.GetFreePort()
 	require.NoError(t, err)
@@ -70,7 +70,8 @@ func SetupDaemon(t *testing.T, ctx context.Context) (string, Closer) { //nolint
 
 	closer := func() {
 		cancel()
-		require.NoError(t, pg.Stop())
+		require.NoError(t, os.RemoveAll(tmpDir))
+		closeDB()
 	}
 	go func() {
 		err := Daemon(ctx, buf, tmpDir, url)

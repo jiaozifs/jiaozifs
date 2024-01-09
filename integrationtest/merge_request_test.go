@@ -337,15 +337,14 @@ func MergeRequestSpec(ctx context.Context, urlStr string) func(c convey.C) {
 					result, err := api.ParseListMergeRequestsResponse(resp)
 					convey.So(err, convey.ShouldBeNil)
 					convey.ShouldHaveLength(*result.JSON200, 2)
-					if i > 5 {
+					if i >= 5 {
 						convey.ShouldBeFalse((*result.JSON200).Pagination.HasMore)
 					} else {
 						convey.ShouldBeTrue((*result.JSON200).Pagination.HasMore)
+						next, err := time.Parse(`2006-01-02 15:04:05.999999999 -0700 MST`, (*result.JSON200).Pagination.NextOffset)
+						convey.So(err, convey.ShouldBeNil)
+						after = &next
 					}
-					fmt.Println((*result.JSON200).Pagination.NextOffset)
-					next, err := time.Parse(`2006-01-02 15:04:05.000000 +0800 CST`, (*result.JSON200).Pagination.NextOffset)
-					convey.So(err, convey.ShouldBeNil)
-					after = &next
 				}
 			})
 		})

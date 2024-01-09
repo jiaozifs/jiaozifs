@@ -27,8 +27,8 @@ import (
 
 func TestTreeWriteBlob(t *testing.T) {
 	ctx := context.Background()
-	postgres, _, db := testhelper.SetupDatabase(ctx, t)
-	defer postgres.Stop() //nolint
+	closeDB, _, db := testhelper.SetupDatabase(ctx, t)
+	defer closeDB()
 
 	adapter := mem.New(ctx)
 	repo := models.NewRepo(db)
@@ -68,8 +68,8 @@ func TestNewWorkRepositoryFromConfig(t *testing.T) {
 	tmpDir, err := os.MkdirTemp(os.TempDir(), "*")
 	require.NoError(t, err)
 
-	postgres, _, db := testhelper.SetupDatabase(ctx, t)
-	defer postgres.Stop() //nolint
+	closeDB, _, db := testhelper.SetupDatabase(ctx, t)
+	defer closeDB()
 
 	repo := models.NewRepo(db)
 	user, err := makeUser(ctx, repo.UserRepo(), "admin")
@@ -174,8 +174,8 @@ func TestNewWorkRepositoryFromConfig(t *testing.T) {
 func TestWorkRepositoryRootTree(t *testing.T) {
 	ctx := context.Background()
 
-	postgres, _, db := testhelper.SetupDatabase(ctx, t)
-	defer postgres.Stop() //nolint
+	closeDB, _, db := testhelper.SetupDatabase(ctx, t)
+	defer closeDB()
 
 	repo := models.NewRepo(db)
 	user, err := makeUser(ctx, repo.UserRepo(), "admin")
@@ -210,8 +210,8 @@ func TestWorkRepositoryRootTree(t *testing.T) {
 
 func TestWorkRepositoryRevert(t *testing.T) {
 	ctx := context.Background()
-	postgres, _, db := testhelper.SetupDatabase(ctx, t)
-	defer postgres.Stop() //nolint
+	closeDB, _, db := testhelper.SetupDatabase(ctx, t)
+	defer closeDB()
 
 	repo := models.NewRepo(db)
 	adapter := mem.New(ctx)
@@ -355,8 +355,8 @@ func TestWorkRepositoryRevert(t *testing.T) {
 
 func TestWorkRepositoryMergeState(t *testing.T) {
 	ctx := context.Background()
-	postgres, _, db := testhelper.SetupDatabase(ctx, t)
-	defer postgres.Stop() //nolint
+	closeDB, _, db := testhelper.SetupDatabase(ctx, t)
+	defer closeDB()
 	repo := models.NewRepo(db)
 
 	user, err := makeUser(ctx, repo.UserRepo(), "admin")

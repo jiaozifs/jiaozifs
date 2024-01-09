@@ -22,8 +22,8 @@ import (
 //		C---->D
 func TestNewCommitPostorderIter(t *testing.T) {
 	ctx := context.Background()
-	postgres, _, db := testhelper.SetupDatabase(ctx, t)
-	defer postgres.Stop() //nolint
+	closeDB, _, db := testhelper.SetupDatabase(ctx, t)
+	defer closeDB()
 
 	repoID := uuid.New()
 	repo := models.NewRepo(db)
@@ -125,8 +125,8 @@ func TestNewCommitPostorderIter(t *testing.T) {
 //		C---->D
 func TestCommitPreorderIter(t *testing.T) {
 	ctx := context.Background()
-	postgres, _, db := testhelper.SetupDatabase(ctx, t)
-	defer postgres.Stop() //nolint
+	closeDB, _, db := testhelper.SetupDatabase(ctx, t)
+	defer closeDB()
 
 	repoID := uuid.New()
 	repo := models.NewRepo(db)

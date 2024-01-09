@@ -18,7 +18,9 @@ import (
 
 var TestConnTmpl = "postgres://postgres:postgres@localhost:%d/jiaozifs?sslmode=disable"
 
-func SetupDatabase(ctx context.Context, t *testing.T) (*embeddedpostgres.EmbeddedPostgres, string, *bun.DB) {
+type CloseFunc func()
+
+func SetupDatabase(ctx context.Context, t *testing.T) (CloseFunc, string, *bun.DB) {
 	port, err := freeport.GetFreePort()
 	require.NoError(t, err)
 	tmpDir, err := os.MkdirTemp(os.TempDir(), "*")
@@ -39,5 +41,8 @@ func SetupDatabase(ctx context.Context, t *testing.T) (*embeddedpostgres.Embedde
 
 	err = migrations.MigrateDatabase(ctx, db)
 	require.NoError(t, err)
-	return postgres, connStr, db
+	return func() {
+		require.NoError(t, postgres.Stop())
+		require.NoError(t, os.RemoveAll(tmpDir))
+	}, connStr, db
 }

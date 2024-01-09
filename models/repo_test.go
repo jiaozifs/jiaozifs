@@ -16,8 +16,8 @@ import (
 
 func TestRepoTransaction(t *testing.T) {
 	ctx := context.Background()
-	postgres, _, db := testhelper.SetupDatabase(ctx, t)
-	defer postgres.Stop() //nolint
+	closeDB, _, db := testhelper.SetupDatabase(ctx, t)
+	defer closeDB()
 
 	t.Run("simple", func(t *testing.T) {
 		pgRepo := models.NewRepo(db)

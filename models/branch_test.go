@@ -15,8 +15,8 @@ import (
 
 func TestRefRepoInsert(t *testing.T) {
 	ctx := context.Background()
-	postgres, _, db := testhelper.SetupDatabase(ctx, t)
-	defer postgres.Stop() //nolint
+	closeDB, _, db := testhelper.SetupDatabase(ctx, t)
+	defer closeDB()
 
 	repo := models.NewBranchRepo(db)
 

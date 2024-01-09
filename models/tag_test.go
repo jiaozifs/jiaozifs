@@ -14,8 +14,8 @@ import (
 
 func TestTagRepo(t *testing.T) {
 	ctx := context.Background()
-	postgres, _, db := testhelper.SetupDatabase(ctx, t)
-	defer postgres.Stop() //nolint
+	closeDB, _, db := testhelper.SetupDatabase(ctx, t)
+	defer closeDB()
 
 	repoID := uuid.New()
 	tagRepo := models.NewTagRepo(db, repoID)
@@ -41,8 +41,8 @@ func TestTagRepo(t *testing.T) {
 
 func TestDeleteTag(t *testing.T) {
 	ctx := context.Background()
-	postgres, _, db := testhelper.SetupDatabase(ctx, t)
-	defer postgres.Stop() //nolint
+	closeDB, _, db := testhelper.SetupDatabase(ctx, t)
+	defer closeDB()
 	t.Run("delete tag", func(t *testing.T) {
 		repoID := uuid.New()
 		tagRepo := models.NewTagRepo(db, repoID)
