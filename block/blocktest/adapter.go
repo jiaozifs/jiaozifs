@@ -26,6 +26,69 @@ func AdapterTest(t *testing.T, adapter block.Adapter, storageNamespace, external
 	t.Run("Adapter_Exists", func(t *testing.T) { testAdapterExists(t, adapter, storageNamespace) })
 	t.Run("Adapter_GetRange", func(t *testing.T) { testAdapterGetRange(t, adapter, storageNamespace) })
 	t.Run("Adapter_Walker", func(t *testing.T) { testAdapterWalker(t, adapter, storageNamespace) })
+	// t.Run("Adapter_Clean", func(t *testing.T) { testAdapterClean(t, adapter, storageNamespace, localPath) })
+}
+
+func testAdapterClean(t *testing.T, adapter block.Adapter, storageNamespace, localPath string) { //nolint
+	ctx := context.Background()
+	const content = "content used for testing"
+
+	tests := []struct {
+		name              string
+		additionalObjects []string
+		path              string
+		wantErr           bool
+		wantTree          []string
+	}{
+		{
+			name:     "test_single",
+			path:     "README",
+			wantErr:  false,
+			wantTree: []string{},
+		},
+
+		{
+			name:     "test_under_folder",
+			path:     "src/tools.go",
+			wantErr:  false,
+			wantTree: []string{},
+		},
+		{
+			name:     "test_under_multiple_folders",
+			path:     "a/b/c/d.txt",
+			wantErr:  false,
+			wantTree: []string{},
+		},
+		{
+			name:              "file_in_the_way",
+			path:              "a/b/c/d.txt",
+			additionalObjects: []string{"a/b/blocker.txt"},
+			wantErr:           false,
+			wantTree:          []string{"/a/b/blocker.txt"},
+		},
+	}
+
+	// setup env
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			envObjects := tt.additionalObjects
+			envObjects = append(envObjects, tt.path)
+			for _, p := range envObjects {
+				obj := block.ObjectPointer{
+					StorageNamespace: storageNamespace,
+					Identifier:       tt.name + "/" + p,
+					IdentifierType:   block.IdentifierTypeRelative,
+				}
+				require.NoError(t, adapter.Put(ctx, obj, int64(len(content)), strings.NewReader(content), block.PutOpts{}))
+			}
+		})
+	}
+
+	// clean
+	t.Run("clean repo", func(t *testing.T) {
+		err := adapter.Clean(ctx, localPath, storageNamespace)
+		require.NoError(t, err)
+	})
 }
 
 func testAdapterPutGet(t *testing.T, adapter block.Adapter, storageNamespace, externalPath string) {

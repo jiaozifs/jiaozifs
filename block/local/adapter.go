@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/jiaozifs/jiaozifs/utils/hash"
+	"github.com/mitchellh/go-homedir"
 
 	"github.com/google/uuid"
 	"github.com/jiaozifs/jiaozifs/block"
@@ -35,9 +36,10 @@ type Adapter struct {
 }
 
 var (
-	ErrPathNotWritable       = errors.New("path provided is not writable")
-	ErrInvalidUploadIDFormat = errors.New("invalid upload id format")
-	ErrBadPath               = errors.New("bad path traversal blocked")
+	ErrPathNotWritable         = errors.New("path provided is not writable")
+	ErrInvalidUploadIDFormat   = errors.New("invalid upload id format")
+	ErrBadPath                 = errors.New("bad path traversal blocked")
+	ErrInvalidStorageNamespace = errors.New("invalid storageNamespace")
 )
 
 type QualifiedKey struct {
@@ -156,6 +158,7 @@ func (l *Adapter) Path() string {
 
 func (l *Adapter) Put(_ context.Context, obj block.ObjectPointer, _ int64, reader io.Reader, _ block.PutOpts) error {
 	p, err := l.extractParamsFromObj(obj)
+	fmt.Println(p)
 	if err != nil {
 		return err
 	}
@@ -185,6 +188,25 @@ func (l *Adapter) Remove(_ context.Context, obj block.ObjectPointer) error {
 		dir := filepath.Dir(p)
 		repoRoot := obj.StorageNamespace[len(DefaultNamespacePrefix):]
 		removeEmptyDirUntil(dir, path.Join(l.path, repoRoot))
+	}
+	return nil
+}
+
+func (l *Adapter) Clean(_ context.Context, localPath, storageNamespace string) error {
+	filepath := path.Join(localPath, storageNamespace[len(DefaultNamespacePrefix):])
+	expandPath, err := homedir.Expand(filepath)
+	if err != nil {
+		return err
+	}
+
+	_, err = os.Stat(expandPath)
+	if err != nil {
+		return nil
+	}
+
+	err = os.RemoveAll(expandPath)
+	if err != nil {
+		return err
 	}
 	return nil
 }

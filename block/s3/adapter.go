@@ -511,6 +511,11 @@ func (a *Adapter) Remove(ctx context.Context, obj block.ObjectPointer) error {
 	return waiter.Wait(ctx, headInput, maxWaitDur)
 }
 
+func (a *Adapter) Clean(_ context.Context, _, _ string) error {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (a *Adapter) copyPart(ctx context.Context, sourceObj, destinationObj block.ObjectPointer, uploadID string, partNumber int, byteRange *string) (*block.UploadPartResponse, error) {
 	srcKey, err := resolveNamespace(sourceObj)
 	if err != nil {

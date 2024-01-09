@@ -149,4 +149,8 @@ func TestRepositoryRepoInsert(t *testing.T) {
 
 	_, err = repo.Get(ctx, models.NewGetRepoParams().SetID(secRepo.ID))
 	require.ErrorIs(t, err, models.ErrNotFound)
+
+	affectRows, err = repo.Delete(ctx, deleteParams)
+	require.NoError(t, err)
+	require.Equal(t, int64(0), affectRows)
 }

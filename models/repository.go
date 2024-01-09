@@ -239,7 +239,127 @@ func (r *RepositoryRepo) List(ctx context.Context, params *ListRepoParams) ([]*R
 }
 
 func (r *RepositoryRepo) Delete(ctx context.Context, params *DeleteRepoParams) (int64, error) {
-	query := r.db.NewDelete().Model((*Repository)(nil))
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return 0, err
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback() //nolint
+		}
+	}()
+
+	affectedRowsRepos, err := r.deleteRepos(ctx, &tx, params)
+	if err != nil {
+		return 0, err
+	}
+
+	affectedRowsCommits, err := r.deleteCommits(ctx, &tx, params.ID)
+	if err != nil {
+		return 0, err
+	}
+
+	affectedRowsTags, err := r.deleteTags(ctx, &tx, params.ID)
+	if err != nil {
+		return 0, err
+	}
+
+	affectedRowsObejcts, err := r.deleteObjects(ctx, &tx, params.ID)
+	if err != nil {
+		return 0, err
+	}
+
+	affectedRowsWips, err := r.deleteWips(ctx, &tx, params.ID)
+	if err != nil {
+		return 0, err
+	}
+
+	affectedRowsBranches, err := r.deleteBranches(ctx, &tx, params.ID)
+	if err != nil {
+		return 0, err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return 0, err
+	}
+
+	return affectedRowsCommits + affectedRowsTags + affectedRowsObejcts + affectedRowsWips + affectedRowsBranches + affectedRowsRepos, nil
+}
+
+func (r *RepositoryRepo) deleteCommits(ctx context.Context, tx *bun.Tx, repoID uuid.UUID) (int64, error) {
+	query := tx.NewDelete().Model((*Commit)(nil))
+	if uuid.Nil != repoID {
+		query = query.Where("repository_id = ?", repoID)
+	}
+
+	sqlResult, err := query.Exec(ctx)
+	if err != nil {
+		return 0, err
+	}
+	affectedRows, _ := sqlResult.RowsAffected()
+	return affectedRows, nil
+}
+
+func (r *RepositoryRepo) deleteTags(ctx context.Context, tx *bun.Tx, repoID uuid.UUID) (int64, error) {
+	query := tx.NewDelete().Model((*Tag)(nil))
+	if uuid.Nil != repoID {
+		query = query.Where("repository_id = ?", repoID)
+	}
+
+	sqlResult, err := query.Exec(ctx)
+	if err != nil {
+		return 0, err
+	}
+	affectedRows, _ := sqlResult.RowsAffected()
+	return affectedRows, nil
+}
+
+func (r *RepositoryRepo) deleteObjects(ctx context.Context, tx *bun.Tx, repoID uuid.UUID) (int64, error) {
+	query := tx.NewDelete().Model((*TreeNode)(nil))
+	if uuid.Nil != repoID {
+		query = query.Where("repository_id = ?", repoID)
+	}
+
+	sqlResult, err := query.Exec(ctx)
+	if err != nil {
+		return 0, err
+	}
+	affectedRows, _ := sqlResult.RowsAffected()
+	return affectedRows, nil
+}
+
+func (r *RepositoryRepo) deleteWips(ctx context.Context, tx *bun.Tx, repoID uuid.UUID) (int64, error) {
+	query := tx.NewDelete().Model((*WorkingInProcess)(nil))
+	if uuid.Nil != repoID {
+		query = query.Where("repository_id = ?", repoID)
+	}
+
+	sqlResult, err := query.Exec(ctx)
+	if err != nil {
+		return 0, err
+	}
+	affectedRows, _ := sqlResult.RowsAffected()
+	return affectedRows, nil
+}
+
+func (r *RepositoryRepo) deleteBranches(ctx context.Context, tx *bun.Tx, repoID uuid.UUID) (int64, error) {
+	query := tx.NewDelete().Model((*Branch)(nil))
+	if uuid.Nil != repoID {
+		query = query.Where("repository_id = ?", repoID)
+	}
+
+	sqlResult, err := query.Exec(ctx)
+	if err != nil {
+		return 0, err
+	}
+	affectedRows, _ := sqlResult.RowsAffected()
+	return affectedRows, nil
+}
+
+func (r *RepositoryRepo) deleteRepos(ctx context.Context, tx *bun.Tx, params *DeleteRepoParams) (int64, error) {
+	query := tx.NewDelete().Model((*Repository)(nil))
 	if uuid.Nil != params.ID {
 		query = query.Where("id = ?", params.ID)
 	}
@@ -256,11 +376,8 @@ func (r *RepositoryRepo) Delete(ctx context.Context, params *DeleteRepoParams) (
 	if err != nil {
 		return 0, err
 	}
-	affectedRows, err := sqlResult.RowsAffected()
-	if err != nil {
-		return 0, err
-	}
-	return affectedRows, err
+	affectedRows, _ := sqlResult.RowsAffected()
+	return affectedRows, nil
 }
 
 func (r *RepositoryRepo) UpdateByID(ctx context.Context, updateModel *UpdateRepoParams) error {

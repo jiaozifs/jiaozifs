@@ -176,6 +176,18 @@ func (a *Adapter) Remove(_ context.Context, obj block.ObjectPointer) error {
 	return nil
 }
 
+func (a *Adapter) Clean(_ context.Context, _, storageNamespace string) error {
+	if storageNamespace == "" {
+		return fmt.Errorf("storageNamespace cannot be empty")
+	}
+	for key := range a.data {
+		if strings.HasPrefix(key, storageNamespace) {
+			delete(a.data, key)
+		}
+	}
+	return nil
+}
+
 func (a *Adapter) Copy(_ context.Context, sourceObj, destinationObj block.ObjectPointer) error {
 	if err := verifyObjectPointer(sourceObj); err != nil {
 		return err
